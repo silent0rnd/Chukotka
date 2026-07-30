@@ -52,6 +52,18 @@
   --signal: #f29a38;
   --signal-bright: #ffad4a;
   --danger: #ff8b71;
+
+  /* Световая система: холодное открытое море -> огни Чукотки.
+     --beam-* пишутся из BlizzardScene, чтобы прожектор курсора
+     работал не только в hero, а на всей странице. */
+  --beam-x: 72vw;
+  --beam-y: 42vh;
+  --beam-strength: 0;
+  --glow-ice: 168, 205, 222;
+  --glow-cold: 104, 148, 174;
+  --glow-steel: 62, 100, 124;
+  --glow-warm: 236, 168, 98;
+
   --content: min(1360px, calc(100vw - 80px));
   --font-display: "Bahnschrift", "DIN 2014", "Arial Narrow", sans-serif;
   --font-body: "Geologica", "Segoe UI", sans-serif;
@@ -1050,15 +1062,121 @@ textarea:focus-visible {
 }
 
 main {
-  --ice-gate-height: 145svh;
+  /* 200svh против прежних 145svh: при 145svh на скраб оставалось
+     всего 45svh (~405px), сцена заканчивалась к 1053px, а дальше
+     до следующей секции шёл почти пустой экран. Теперь ход ~100svh
+     и его хватает на разлом, пролёт осколков и раскрытие текста. */
+  --ice-gate-height: 200svh;
   --ice-gate-overlap: clamp(240px, 28svh, 300px);
   position: relative;
   overflow: clip;
+  /* Световое поле всей страницы. Порядок слоёв сверху вниз повторяет
+     путь груза: ледовый рубеж (самый холодный и тёмный) -> морской
+     участок -> подход к берегу -> огни порта у формы расчёта.
+     Проценты соответствуют секциям: лёд 8-24%, грузы 24-44%,
+     маршрут 44-60%, процесс 60-74%, компания 74-84%, расчёт 84-100%. */
   background:
-    radial-gradient(circle at 82% 22%, rgba(44, 73, 89, 0.18), transparent 25%),
-    radial-gradient(circle at 17% 48%, rgba(34, 63, 78, 0.16), transparent 28%),
-    radial-gradient(circle at 78% 73%, rgba(35, 62, 76, 0.14), transparent 30%),
-    linear-gradient(180deg, #081721 0%, #0a1b27 19%, #07151f 40%, #091924 66%, #06101a 100%);
+    /* Ледовый рубеж: узкая холодная засветка по горизонту разлома */
+    radial-gradient(
+      120% 9% at 50% 15%,
+      rgba(var(--glow-ice), 0.16),
+      transparent 70%
+    ),
+    /* Грузы: свет входит сверху слева, к заголовку */
+    radial-gradient(
+      78% 15% at 12% 30%,
+      rgba(var(--glow-cold), 0.15),
+      transparent 68%
+    ),
+    /* Грузы: холодный контровой отблеск справа за фотографией */
+    radial-gradient(
+      54% 11% at 92% 39%,
+      rgba(var(--glow-steel), 0.2),
+      transparent 70%
+    ),
+    /* Маршрут: полярное сияние дугой над картой */
+    radial-gradient(
+      96% 10% at 46% 49%,
+      rgba(var(--glow-ice), 0.13),
+      transparent 66%
+    ),
+    /* Маршрут: первый намёк на тепло справа - там Певек */
+    radial-gradient(
+      44% 8% at 88% 55%,
+      rgba(var(--glow-warm), 0.09),
+      transparent 72%
+    ),
+    /* Как работаем: свет справа, со стороны кадра с портом */
+    radial-gradient(
+      70% 13% at 86% 67%,
+      rgba(var(--glow-cold), 0.16),
+      transparent 68%
+    ),
+    /* О компании: глубокий холодный объём слева */
+    radial-gradient(
+      82% 12% at 8% 79%,
+      rgba(var(--glow-steel), 0.22),
+      transparent 70%
+    ),
+    /* Расчёт: тёплая зона прибытия, поднимается снизу слева */
+    radial-gradient(
+      88% 16% at 26% 93%,
+      rgba(var(--glow-warm), 0.13),
+      transparent 68%
+    ),
+    /* Расчёт: тёплый акцент под кнопкой отправки */
+    radial-gradient(
+      46% 9% at 76% 96%,
+      rgba(var(--glow-warm), 0.11),
+      transparent 70%
+    ),
+    /* Температурный дрейф: сталь -> холод -> потепление к финалу */
+    linear-gradient(
+      180deg,
+      #081721 0%,
+      #060f18 14%,
+      #0b1a26 27%,
+      #0d1f2c 38%,
+      #0a1a26 48%,
+      #101f2b 60%,
+      #0c1a25 72%,
+      #101d28 82%,
+      #16202a 92%,
+      #12191f 100%
+    );
+}
+
+/* Прожектор курсора, продлённый на всю страницу. Живёт на том же
+   уровне, что и .blizzard-haze - свет ложится поверх контента,
+   как пурга, подхваченная лучом. */
+.ambient-beam {
+  /* inset: 0 обязателен: --beam-x/--beam-y приходят в координатах
+     вьюпорта, любой отрицательный inset сдвинул бы луч. */
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  opacity: var(--beam-strength);
+  /* Цвет взят из drawBeacon в script.js, чтобы CSS-ореол и луч
+     на canvas читались как один источник света. */
+  background:
+    radial-gradient(
+      34vmax 21vmax at var(--beam-x) var(--beam-y),
+      rgba(242, 232, 210, 0.085),
+      rgba(224, 230, 220, 0.038) 46%,
+      transparent 74%
+    ),
+    radial-gradient(
+      13vmax 13vmax at var(--beam-x) var(--beam-y),
+      rgba(255, 244, 220, 0.075),
+      transparent 68%
+    );
+  /* Без filter: blur() - градиенты и так растянуты мягко, а blur на
+     фиксированном слое во весь экран заставлял бы пересчитывать
+     полноэкранный проход при каждом сдвиге курсора. */
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+  will-change: opacity;
 }
 
 .section-shell {
@@ -1115,8 +1233,27 @@ main {
   --ice-open: 0;
   --ice-release: 0;
   --ice-scatter: 0;
+  --ice-reveal: 0;
   --ice-fragment-opacity: 1;
   --ice-fracture-opacity: 1;
+
+  /* Единый источник света для всей плиты: один и тот же блик на всех
+     осколках читается как одно направление света, а разные clip-path
+     показывают его разными участками. Раньше brightness(0.74) на
+     обесцвеченной текстуре давала тёмную породу, а не лёд. */
+  --ice-sheen: linear-gradient(
+    158deg,
+    rgba(216, 240, 250, 0.3) 0%,
+    rgba(186, 220, 236, 0.09) 17%,
+    transparent 34%,
+    transparent 58%,
+    rgba(174, 212, 231, 0.13) 73%,
+    rgba(208, 235, 246, 0.22) 84%,
+    transparent 96%
+  );
+  --ice-grade: saturate(0.62) brightness(1.02) contrast(1.16)
+    hue-rotate(-6deg);
+
   position: relative;
   z-index: 1;
   height: var(--ice-gate-height);
@@ -1183,15 +1320,20 @@ main {
   left: 50%;
   width: min(74vw, 1040px);
   height: 1px;
-  opacity: calc(0.16 + var(--ice-open) * 0.36);
+  /* Гаснет к раскрытию: линия проходит точно по центру и
+     перечёркивала заголовок, который здесь появляется. */
+  opacity: calc((0.16 + var(--ice-open) * 0.36) * (1 - var(--ice-reveal)));
   background: linear-gradient(90deg, transparent, rgba(224, 235, 238, 0.72), transparent);
   box-shadow: 0 0 34px rgba(183, 214, 226, 0.2);
   transform: translate(-50%, -50%);
 }
 
+/* Порядок слоёв: фон 0 -> текст 1 -> плита 2 -> вспышка 3 ->
+   трещины 4 -> счётчик 5. Текст лежит ПОД плитой, поэтому
+   открывается по мере того, как осколки расходятся и гаснут. */
 .ice-gate__fragments {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   inset: 0;
   pointer-events: none;
 }
@@ -1202,16 +1344,18 @@ main {
   inset: -4%;
   content: "";
   opacity: calc(1 - var(--ice-release));
-  background-color: #0c1b29;
+  background-color: #0e2130;
   background-image: url("assets/generated/ice-gate-texture.png");
-  background-image: image-set(
-    url("assets/generated/ice-gate-texture.avif") type("image/avif"),
-    url("assets/generated/ice-gate-texture.webp") type("image/webp"),
-    url("assets/generated/ice-gate-texture.png") type("image/png")
-  );
+  background-image:
+    var(--ice-sheen),
+    image-set(
+      url("assets/generated/ice-gate-texture.avif") type("image/avif"),
+      url("assets/generated/ice-gate-texture.webp") type("image/webp"),
+      url("assets/generated/ice-gate-texture.png") type("image/png")
+    );
   background-position: center;
   background-size: cover;
-  filter: saturate(0.78) brightness(0.74) contrast(1.08);
+  filter: var(--ice-grade);
 }
 
 .ice-gate__fragment {
@@ -1226,24 +1370,42 @@ main {
   position: absolute;
   inset: -4%;
   opacity: var(--ice-fragment-opacity);
-  background-color: #0c1b29;
+  background-color: #0e2130;
   background-image: url("assets/generated/ice-gate-texture.png");
-  background-image: image-set(
-    url("assets/generated/ice-gate-texture.avif") type("image/avif"),
-    url("assets/generated/ice-gate-texture.webp") type("image/webp"),
-    url("assets/generated/ice-gate-texture.png") type("image/png")
-  );
+  background-image:
+    var(--ice-sheen),
+    image-set(
+      url("assets/generated/ice-gate-texture.avif") type("image/avif"),
+      url("assets/generated/ice-gate-texture.webp") type("image/webp"),
+      url("assets/generated/ice-gate-texture.png") type("image/png")
+    );
   background-position: center;
   background-size: cover;
-  filter: saturate(0.78) brightness(0.74) contrast(1.08);
+  filter: var(--ice-grade);
+  /* Осколки проходят мимо камеры: масштаб уводит их за зрителя,
+     поэтому боковой разлёт приглушён множителем 0.42 - иначе при
+     scale ~2.4 куски улетали за экран раньше, чем успевали пройти.
+     Раньше здесь был scale(1 - scatter * 0.055): плита не пролетала,
+     а слегка уменьшалась и гасла в ноль. */
   transform:
     translate3d(
-      calc(var(--ice-release) * var(--release-x) + var(--ice-scatter) * var(--flight-x)),
-      calc(var(--ice-release) * var(--release-y) + var(--ice-scatter) * var(--flight-y)),
+      calc(
+        var(--ice-release) * var(--release-x)
+        + var(--ice-scatter) * var(--flight-x) * 0.42
+      ),
+      calc(
+        var(--ice-release) * var(--release-y)
+        + var(--ice-scatter) * var(--flight-y) * 0.42
+      ),
       0
     )
-    rotate(calc(var(--ice-release) * var(--release-r) + var(--ice-scatter) * var(--flight-r)))
-    scale(calc(1 + var(--ice-release) * 0.012 - var(--ice-scatter) * 0.055));
+    rotate(
+      calc(
+        var(--ice-release) * var(--release-r)
+        + var(--ice-scatter) * var(--flight-r)
+      )
+    )
+    scale(calc(1 + var(--ice-release) * 0.02 + var(--ice-scatter) * 1.42));
   transform-origin: var(--origin-x) var(--origin-y);
   will-change: transform, opacity;
 }
@@ -1252,9 +1414,10 @@ main {
   position: absolute;
   inset: 0;
   content: "";
+  /* Затемнение ослаблено: прежние значения гасили блик из --ice-sheen. */
   background:
-    radial-gradient(ellipse at 50% 50%, transparent 10%, rgba(2, 9, 15, 0.18) 68%),
-    linear-gradient(180deg, rgba(7, 17, 27, 0.14), rgba(8, 18, 29, 0.3));
+    radial-gradient(ellipse at 50% 50%, transparent 18%, rgba(2, 9, 15, 0.12) 74%),
+    linear-gradient(180deg, rgba(7, 17, 27, 0.06), rgba(8, 18, 29, 0.2));
   mix-blend-mode: multiply;
 }
 
@@ -1398,15 +1561,19 @@ main {
   vector-effect: non-scaling-stroke;
 }
 
+/* Свежий скол светится ярче самой плиты - иначе трещины читались
+   как царапины по камню, а не как разлом льда. */
 .ice-gate__crack--core {
-  opacity: 0.78;
-  stroke-width: 0.9;
+  opacity: 0.95;
+  stroke: rgba(238, 250, 255, 0.98);
+  stroke-width: 1.5;
 }
 
 .ice-gate__crack--branch,
 .ice-gate__crack--exit {
-  stroke: rgba(198, 224, 234, 0.66);
-  stroke-width: 0.58;
+  opacity: 0.82;
+  stroke: rgba(214, 238, 249, 0.82);
+  stroke-width: 0.92;
 }
 
 .ice-gate__impact {
@@ -1425,12 +1592,68 @@ main {
   pointer-events: none;
 }
 
+/* Текст за льдом. Появляется, когда плита расходится, и держится
+   до конца секции - именно это убирает пустой экран, который
+   раньше оставался после разлёта осколков. */
+.ice-gate__reveal {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: var(--content);
+  max-width: 780px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Без JS переменные не пишутся, поэтому текст виден по умолчанию,
+   как и остальные [data-reveal] в этом проекте. */
+.js .ice-gate__reveal {
+  opacity: var(--ice-reveal);
+  transform: translate(-50%, calc(-50% + (1 - var(--ice-reveal)) * 26px));
+}
+
+.ice-gate__kicker {
+  margin: 0 0 20px;
+  color: var(--signal);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ice-gate__reveal h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(38px, 4.6vw, 68px);
+  font-stretch: condensed;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+  text-wrap: balance;
+  text-shadow: 0 2px 44px rgba(4, 12, 20, 0.72);
+}
+
+.ice-gate__lead {
+  max-width: 560px;
+  margin: 26px auto 0;
+  color: rgba(237, 244, 247, 0.66);
+  font-size: 16px;
+  line-height: 1.6;
+  text-shadow: 0 1px 26px rgba(4, 12, 20, 0.68);
+}
+
 .ice-gate__meter {
   position: absolute;
   z-index: 5;
   right: max(40px, calc((100vw - 1360px) / 2));
   bottom: 42px;
   width: min(220px, 28vw);
+  /* Сцена отработала - счётчик уходит, иначе он висел бы в кадре,
+     когда снизу уже въезжает заголовок следующей секции. */
+  opacity: calc(1 - var(--ice-reveal));
   color: rgba(225, 235, 239, 0.5);
   font-family: var(--font-ui);
   font-size: 9px;
@@ -1535,8 +1758,13 @@ main {
   width: 78vw;
   height: 64%;
   content: "";
-  background: radial-gradient(ellipse, rgba(84, 111, 125, 0.12), transparent 66%);
+  background: radial-gradient(
+    ellipse,
+    rgba(var(--glow-cold), 0.16),
+    transparent 66%
+  );
   filter: blur(35px);
+  pointer-events: none;
 }
 
 .cargo-layout {
@@ -1723,21 +1951,51 @@ main {
   padding-bottom: clamp(120px, 14vw, 210px);
 }
 
+/* Световой шов между секциями. Каждая секция задаёт свои
+   --seam-* и получает собственную температуру света. */
 .route-section::before,
 .process-section::before,
 .request-section::before {
+  --seam-glow: var(--glow-cold);
+  --seam-alpha: 0.15;
+  --seam-x: 68%;
   position: absolute;
   z-index: 0;
-  top: -90px;
+  top: -130px;
   right: -18vw;
   left: -18vw;
-  height: 220px;
+  height: 300px;
   content: "";
   background:
-    radial-gradient(ellipse at 68% 46%, rgba(118, 143, 154, 0.09), transparent 32%),
-    linear-gradient(180deg, transparent, rgba(13, 31, 42, 0.14), transparent);
-  filter: blur(18px);
+    radial-gradient(
+      ellipse at var(--seam-x) 46%,
+      rgba(var(--seam-glow), var(--seam-alpha)),
+      transparent 46%
+    ),
+    linear-gradient(180deg, transparent, rgba(9, 24, 34, 0.2), transparent);
+  filter: blur(22px);
   pointer-events: none;
+}
+
+/* Маршрут: холодный свет по центру, над картой */
+.route-section::before {
+  --seam-glow: var(--glow-ice);
+  --seam-alpha: 0.13;
+  --seam-x: 48%;
+}
+
+/* Как работаем: свет приходит справа, со стороны кадра с портом */
+.process-section::before {
+  --seam-glow: var(--glow-cold);
+  --seam-alpha: 0.16;
+  --seam-x: 78%;
+}
+
+/* Расчёт: зона прибытия, шов уже тёплый */
+.request-section::before {
+  --seam-glow: var(--glow-warm);
+  --seam-alpha: 0.12;
+  --seam-x: 30%;
 }
 
 .route-section__intro {
@@ -2146,7 +2404,16 @@ main {
   overflow: hidden;
   display: flex;
   align-items: center;
-  background: #07131d;
+  /* Прозрачные края вместо плоской заливки: сплошной #07131d
+     обрезал световое поле main и давал жёсткий горизонтальный стык
+     на границе с секцией расчёта. */
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(6, 17, 26, 0.5) 18%,
+    rgba(6, 17, 26, 0.5) 80%,
+    transparent 100%
+  );
 }
 
 .company-scene,
@@ -2648,7 +2915,9 @@ main {
   }
 
   main {
-    --ice-gate-height: 132svh;
+    /* 132svh давали всего ~32svh хода - вся сцена от первой трещины
+       до раскрытия текста укладывалась в 270px скролла. */
+    --ice-gate-height: 185svh;
     --ice-gate-overlap: clamp(130px, 18svh, 160px);
   }
 
@@ -3201,6 +3470,12 @@ main {
     transform: none;
   }
 
+  /* Луч следует за курсором - это движение, поэтому гасим его
+     полностью, оставляя только статичное световое поле секций. */
+  .ambient-beam {
+    display: none;
+  }
+
   .js [data-reveal] {
     opacity: 1;
     transform: none;
@@ -3224,25 +3499,48 @@ main {
     opacity: 0.72;
   }
 
+  /* Статичная поза: плита уже раскрыта, текст читается сразу.
+     --ice-fragment-opacity: 0, иначе плита закрывала бы утверждение,
+     которое без скролла уже нечем открыть. */
   .ice-gate {
-    --ice-progress: 0.72 !important;
-    --ice-break: 1 !important;
-    --ice-open: 0.38 !important;
+    --ice-progress: 0.76 !important;
+    --ice-break: 0 !important;
+    --ice-open: 1 !important;
     --ice-release: 0.38 !important;
     --ice-scatter: 0 !important;
-    --ice-fragment-opacity: 1 !important;
-    --ice-fracture-opacity: 0.78 !important;
-    height: min(520px, 58svh);
+    --ice-reveal: 1 !important;
+    --ice-fragment-opacity: 0 !important;
+    --ice-fracture-opacity: 0.5 !important;
+    height: auto;
+    min-height: min(560px, 64svh);
+    margin-top: 0;
   }
 
   .ice-gate__sticky {
     position: relative;
-    height: 100%;
-    min-height: 0;
+    height: auto;
+    min-height: min(560px, 64svh);
+    padding-block: clamp(64px, 10vh, 120px);
   }
 
-  .ice-gate__crack {
-    stroke-dashoffset: 0 !important;
+  /* Без движения вся ледовая сцена - это шум поверх утверждения:
+     --ice-fragment-opacity: 0 гасит только осколки, но не базовую
+     плиту (.ice-gate__fragments::before) и не трещины, и текст
+     читался сквозь лёд. Убираем декоративный стек целиком. */
+  .ice-gate__fragments,
+  .ice-gate__fracture,
+  .ice-gate__impact,
+  .ice-gate__meter {
+    display: none;
+  }
+
+  .js .ice-gate__reveal {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin-inline: auto;
+    opacity: 1;
+    transform: none;
   }
 
 }

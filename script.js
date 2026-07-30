@@ -245,7 +245,8 @@ function updateIceGate() {
     iceGate.style.setProperty("--ice-open", "0.38");
     iceGate.style.setProperty("--ice-release", "0.38");
     iceGate.style.setProperty("--ice-scatter", "0");
-    iceGate.style.setProperty("--ice-fragment-opacity", "1");
+    iceGate.style.setProperty("--ice-reveal", "1");
+    iceGate.style.setProperty("--ice-fragment-opacity", "0");
     iceGate.style.setProperty("--ice-fracture-opacity", "0.78");
     iceGateCrackPaths.forEach((path) => {
       path.style.strokeDashoffset = "0";
@@ -257,20 +258,25 @@ function updateIceGate() {
   const travel = Math.max(1, iceGate.offsetHeight - window.innerHeight);
   const progress = clamp(-rect.top / travel);
   const compactScene = window.innerWidth <= 760;
-  const fracture = smoothstep(0.05, 0.64, progress);
+  /* Сцена сдвинута в первые две трети хода, чтобы последняя треть
+     осталась под удержание текста - раньше всё заканчивалось к 0.99
+     и дальше зритель смотрел в пустой экран. */
+  const fracture = smoothstep(0.04, 0.4, progress);
   const release = compactScene
-    ? smoothstep(0.56, 0.86, progress)
-    : smoothstep(0.5, 0.74, progress);
+    ? smoothstep(0.36, 0.58, progress)
+    : smoothstep(0.32, 0.54, progress);
   const scatter = compactScene
-    ? smoothstep(0.82, 1, progress)
-    : smoothstep(0.7, 1, progress);
-  const opening = smoothstep(0.54, 0.94, progress);
+    ? smoothstep(0.52, 0.84, progress)
+    : smoothstep(0.48, 0.8, progress);
+  const opening = smoothstep(0.4, 0.72, progress);
   const fragmentOpacity = 1 - (
     compactScene
-      ? smoothstep(0.88, 0.995, progress)
-      : smoothstep(0.82, 0.99, progress)
+      ? smoothstep(0.62, 0.82, progress)
+      : smoothstep(0.58, 0.78, progress)
   );
-  const fractureFade = 1 - smoothstep(0.58, 0.84, progress);
+  const fractureFade = 1 - smoothstep(0.44, 0.66, progress);
+  /* Текст входит из-под расходящейся плиты и держится до конца. */
+  const reveal = smoothstep(0.54, 0.76, progress);
   const impact = fracture * (1 - opening * 0.9);
 
   iceGate.style.setProperty("--ice-progress", progress.toFixed(4));
@@ -278,6 +284,7 @@ function updateIceGate() {
   iceGate.style.setProperty("--ice-open", opening.toFixed(4));
   iceGate.style.setProperty("--ice-release", release.toFixed(4));
   iceGate.style.setProperty("--ice-scatter", scatter.toFixed(4));
+  iceGate.style.setProperty("--ice-reveal", reveal.toFixed(4));
   iceGate.style.setProperty("--ice-fragment-opacity", fragmentOpacity.toFixed(4));
   iceGate.style.setProperty("--ice-fracture-opacity", fractureFade.toFixed(4));
 
@@ -343,6 +350,7 @@ class BlizzardScene {
     this.width = 0;
     this.height = 0;
     this.pixelRatio = 1;
+    this.publishedBeam = null;
     this.pointer = {
       x: window.innerWidth * 0.72,
       y: window.innerHeight * 0.42,
@@ -382,6 +390,8 @@ class BlizzardScene {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
+    this.heroHeight = document.querySelector("#hero")?.offsetHeight
+      || this.height;
 
     this.canvas.width = Math.round(this.width * this.pixelRatio);
     this.canvas.height = Math.round(this.height * this.pixelRatio);
@@ -545,6 +555,41 @@ class BlizzardScene {
     this.pointer.strength += (
       desiredStrength - this.pointer.strength
     ) * strengthEase;
+  }
+
+  /* Отдаёт положение и силу луча в CSS, чтобы прожектор курсора
+     подсвечивал не только пургу в hero, но и световые слои секций
+     на всей странице. Пишем только при заметном изменении - иначе
+     каждый кадр дёргал бы пересчёт стилей. */
+  publishBeam() {
+    /* В hero настоящий луч рисует canvas, и ambient-ореол только
+       вымывал бы кадр. Поэтому он вступает после первого экрана:
+       прожектор уходит - остаётся свет, который он оставил. */
+    const handoff = smoothstep(
+      this.heroHeight * 0.55,
+      this.heroHeight * 1.05,
+      window.scrollY
+    );
+    const strength = this.pointerQuery.matches && !this.motionQuery.matches
+      ? this.pointer.strength * handoff
+      : 0;
+    const x = Math.round(this.pointer.x);
+    const y = Math.round(this.pointer.y);
+
+    if (
+      this.publishedBeam
+      && Math.abs(this.publishedBeam.x - x) < 6
+      && Math.abs(this.publishedBeam.y - y) < 6
+      && Math.abs(this.publishedBeam.strength - strength) < 0.02
+    ) {
+      return;
+    }
+
+    this.publishedBeam = { x, y, strength };
+    const root = document.documentElement.style;
+    root.setProperty("--beam-x", `${x}px`);
+    root.setProperty("--beam-y", `${y}px`);
+    root.setProperty("--beam-strength", strength.toFixed(3));
   }
 
   drawBeacon() {
@@ -716,6 +761,7 @@ class BlizzardScene {
 
   drawStaticFrame() {
     this.context.clearRect(0, 0, this.width, this.height);
+    this.publishBeam();
     this.drawParticles(3200, 0, false);
     this.canvas.dataset.motion = "reduced";
   }
@@ -727,6 +773,7 @@ class BlizzardScene {
 
     this.context.clearRect(0, 0, this.width, this.height);
     this.updatePointer(delta);
+    this.publishBeam();
     this.drawBeacon();
     this.drawParticles(time, delta, true);
     this.canvas.dataset.motion = "active";

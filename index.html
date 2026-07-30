@@ -9,8 +9,8 @@
     >
     <meta name="theme-color" content="#07111b">
     <title>Доставка грузов на Чукотку - транспортная компания «Горизонт»</title>
-    <link rel="stylesheet" href="styles.css?v=20260729-15">
-    <script src="script.js?v=20260729-15" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260730-3">
+    <script src="script.js?v=20260730-3" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#hero-content">Перейти к содержанию</a>
@@ -62,6 +62,7 @@
 
     <main>
       <div class="blizzard-haze" aria-hidden="true"></div>
+      <div class="ambient-beam" aria-hidden="true"></div>
       <canvas class="blizzard-canvas" id="blizzard-canvas" aria-hidden="true"></canvas>
 
       <section class="hero" id="hero" aria-labelledby="hero-title">
@@ -152,11 +153,11 @@
         </div>
       </section>
 
-      <section class="ice-gate" data-ice-gate aria-hidden="true">
+      <section class="ice-gate" data-ice-gate aria-labelledby="ice-gate-title">
         <div class="ice-gate__sticky">
-          <div class="ice-gate__depth"></div>
+          <div class="ice-gate__depth" aria-hidden="true"></div>
 
-          <div class="ice-gate__fragments">
+          <div class="ice-gate__fragments" aria-hidden="true">
             <span class="ice-gate__fragment ice-gate__fragment--1"></span>
             <span class="ice-gate__fragment ice-gate__fragment--2"></span>
             <span class="ice-gate__fragment ice-gate__fragment--3"></span>
@@ -169,10 +170,14 @@
             <span class="ice-gate__fragment ice-gate__fragment--10"></span>
           </div>
 
+          <!-- slice, а не none: при preserveAspectRatio="none" геометрия
+               трещин сжималась по горизонтали втрое сильнее, чем по
+               вертикали, и на мобильных читалась как зигзаг-царапины. -->
           <svg
             class="ice-gate__fracture"
             viewBox="0 0 1440 900"
-            preserveAspectRatio="none"
+            preserveAspectRatio="xMidYMid slice"
+            aria-hidden="true"
           >
             <defs>
               <filter id="ice-crack-glow" x="-30%" y="-30%" width="160%" height="160%">
@@ -244,8 +249,19 @@
             </g>
           </svg>
 
-          <div class="ice-gate__impact"></div>
-          <div class="ice-gate__meter">
+          <div class="ice-gate__impact" aria-hidden="true"></div>
+
+          <div class="ice-gate__reveal">
+            <p class="ice-gate__kicker">Условия навигации</p>
+            <h2 id="ice-gate-title">Севморпуть открыт не всегда</h2>
+            <p class="ice-gate__lead">
+              Сезон, ледовая обстановка и требования к судну задают границы
+              маршрута. Поэтому схему доставки считаем под конкретный груз,
+              а не по общему тарифу.
+            </p>
+          </div>
+
+          <div class="ice-gate__meter" aria-hidden="true">
             <span>Ледовый рубеж</span>
             <i></i>
           </div>
