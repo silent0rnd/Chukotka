@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Организация перевозки грузов на Чукотку. Подбор маршрута до Певека и Билибино под параметры груза, сроки и сезон."
+    >
+    <meta name="theme-color" content="#07111b">
+    <title>Доставка грузов на Чукотку - транспортная компания «Горизонт»</title>
+    <link rel="stylesheet" href="styles.css?v=20260729-15">
+    <script src="script.js?v=20260729-15" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#hero-content">Перейти к содержанию</a>
+
+    <header class="site-header" aria-label="Шапка сайта">
+      <div class="site-header__inner">
+        <a class="brand" href="#hero" aria-label="Горизонт - на первый экран">
+          <img src="assets/logo.png" alt="Горизонт - северная логистика" width="1188" height="237">
+        </a>
+
+        <nav class="site-nav" aria-label="Основная навигация">
+          <a href="#gruzi">Грузы</a>
+          <a href="#marshrut">Маршрут</a>
+          <a href="#kak-rabotaem">Как работаем</a>
+          <a href="#o-kompanii">О компании</a>
+          <a href="#kontakty">Контакты</a>
+        </nav>
+
+        <div class="site-header__actions">
+          <a
+            class="header-phone"
+            href="tel:+79367772255"
+            data-analytics="phone_click"
+            aria-label="Позвонить: 8 936 777-22-55"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M8.2 3.5 10 7.7 7.8 9.5a15 15 0 0 0 6.7 6.7l1.8-2.2 4.2 1.8v3.1c0 .9-.7 1.6-1.6 1.6A15.4 15.4 0 0 1 3.5 5.1c0-.9.7-1.6 1.6-1.6h3.1Z"/>
+            </svg>
+            <span>8 936 777-22-55</span>
+          </a>
+
+          <button class="header-cta" type="button" data-open-calculation>
+            Рассчитать
+          </button>
+
+          <button
+            class="menu-toggle"
+            type="button"
+            aria-label="Открыть меню"
+            aria-controls="mobile-menu"
+            data-open-menu
+          >
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="blizzard-haze" aria-hidden="true"></div>
+      <canvas class="blizzard-canvas" id="blizzard-canvas" aria-hidden="true"></canvas>
+
+      <section class="hero" id="hero" aria-labelledby="hero-title">
+        <div class="hero-scene" aria-hidden="true">
+          <picture>
+            <source srcset="assets/generated/hero-polar-route.avif" type="image/avif">
+            <source srcset="assets/generated/hero-polar-route.webp" type="image/webp">
+            <img
+              class="hero-scene__image"
+              src="assets/generated/hero-polar-route.png"
+              alt=""
+              width="1672"
+              height="941"
+              fetchpriority="high"
+            >
+          </picture>
+          <div class="hero-scene__shade"></div>
+          <div class="hero-scene__fog hero-scene__fog--far"></div>
+          <div class="hero-scene__fog hero-scene__fog--near"></div>
+          <div class="hero-scene__grain"></div>
+          <div class="port-signal port-signal--one"></div>
+          <div class="port-signal port-signal--two"></div>
+        </div>
+
+        <div class="hero__inner">
+          <div class="hero__content" id="hero-content">
+            <p class="hero__eyebrow">
+              <span>Северная логистика</span>
+              <span class="hero__eyebrow-line"></span>
+              <span>Чукотка</span>
+            </p>
+
+            <h1 class="hero__title" id="hero-title">
+              <span>Доставка грузов</span>
+              <span>на Чукотку</span>
+            </h1>
+
+            <p class="hero__lead">
+              Подберём маршрут до Певека и Билибино с учётом типа груза,
+              требуемых сроков и сезона.
+            </p>
+
+            <div class="hero__actions">
+              <button class="button button--primary" type="button" data-open-calculation>
+                <span>Рассчитать стоимость</span>
+              </button>
+
+              <a
+                class="button button--secondary"
+                href="tel:+79367772255"
+                data-analytics="phone_click"
+              >
+                Обсудить задачу с логистом
+              </a>
+            </div>
+          </div>
+
+          <div class="hero__route" aria-label="Основные направления и специализация">
+            <div class="route-index" aria-hidden="true">
+              <span>01</span>
+              <span class="route-index__line"></span>
+              <span>Восток</span>
+            </div>
+
+            <div class="route-points">
+              <div class="route-point">
+                <span class="route-point__marker"></span>
+                <span class="route-point__label">Направление</span>
+                <strong>Певек</strong>
+              </div>
+              <div class="route-point">
+                <span class="route-point__marker"></span>
+                <span class="route-point__label">Направление</span>
+                <strong>Билибино</strong>
+              </div>
+              <div class="route-point route-point--wide">
+                <span class="route-point__marker"></span>
+                <span class="route-point__label">Схема перевозки</span>
+                <strong>Под конкретный груз</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero__edge" aria-hidden="true">
+          <span>Северный маршрут</span>
+          <span class="hero__edge-line"></span>
+        </div>
+      </section>
+
+      <section class="ice-gate" data-ice-gate aria-hidden="true">
+        <div class="ice-gate__sticky">
+          <div class="ice-gate__depth"></div>
+
+          <div class="ice-gate__fragments">
+            <span class="ice-gate__fragment ice-gate__fragment--1"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--2"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--3"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--4"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--5"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--6"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--7"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--8"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--9"></span>
+            <span class="ice-gate__fragment ice-gate__fragment--10"></span>
+          </div>
+
+          <svg
+            class="ice-gate__fracture"
+            viewBox="0 0 1440 900"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <filter id="ice-crack-glow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="1.8" result="blur"></feGaussianBlur>
+                <feMerge>
+                  <feMergeNode in="blur"></feMergeNode>
+                  <feMergeNode in="SourceGraphic"></feMergeNode>
+                </feMerge>
+              </filter>
+            </defs>
+
+            <g filter="url(#ice-crack-glow)">
+              <path
+                class="ice-gate__crack ice-gate__crack--core"
+                pathLength="1"
+                data-ice-crack
+                data-ice-start="0.08"
+                data-ice-end="0.42"
+                d="M720 451L686 446L661 437L643 440L619 449L593 447L568 459L544 454L520 444L489 440L467 448L444 463L408 470L381 460L354 451L327 449L303 458L278 472L247 477L222 470L194 462L169 461L143 469L116 483L88 485L57 477L28 469L0 472"
+              />
+              <path
+                class="ice-gate__crack ice-gate__crack--core"
+                pathLength="1"
+                data-ice-crack
+                data-ice-start="0.1"
+                data-ice-end="0.46"
+                d="M720 451L746 455L771 466L798 468L824 459L850 448L877 443L902 451L929 465L956 471L982 466L1008 455L1036 449L1063 458L1090 473L1117 479L1144 473L1170 461L1198 455L1224 462L1251 477L1279 481L1304 476L1333 466L1361 463L1388 469L1415 480L1440 477"
+              />
+              <path
+                class="ice-gate__crack ice-gate__crack--branch"
+                pathLength="1"
+                data-ice-crack
+                data-ice-start="0.3"
+                data-ice-end="0.57"
+                d="M568 459L552 430L535 404L511 391L489 373L475 346L464 318M568 459L585 482L606 509L613 539L626 568"
+              />
+              <path
+                class="ice-gate__crack ice-gate__crack--branch"
+                pathLength="1"
+                data-ice-crack
+                data-ice-start="0.36"
+                data-ice-end="0.62"
+                d="M877 443L887 417L902 388L924 372L948 352L959 322L971 291M877 443L859 470L839 501L835 531L826 561L806 585L781 610"
+              />
+              <path
+                class="ice-gate__crack ice-gate__crack--branch"
+                pathLength="1"
+                data-ice-crack
+                data-ice-start="0.42"
+                data-ice-end="0.67"
+                d="M327 449L315 421L300 392L279 378L258 361L251 337L246 311M327 449L341 477L357 510L353 539L347 572"
+              />
+              <path
+                class="ice-gate__crack ice-gate__crack--branch"
+                pathLength="1"
+                data-ice-crack
+                data-ice-start="0.46"
+                data-ice-end="0.71"
+                d="M1117 479L1134 450L1154 416L1178 402L1202 388L1216 359L1228 330M1117 479L1103 507L1089 536L1094 568L1097 600"
+              />
+              <path
+                class="ice-gate__crack ice-gate__crack--exit"
+                pathLength="1"
+                data-ice-crack
+                data-ice-start="0.55"
+                data-ice-end="0.78"
+                d="M169 461L151 526L171 588L142 651L158 716L128 780L141 844L118 900"
+              />
+            </g>
+          </svg>
+
+          <div class="ice-gate__impact"></div>
+          <div class="ice-gate__meter">
+            <span>Ледовый рубеж</span>
+            <i></i>
+          </div>
+        </div>
+      </section>
+
+      <div class="route-thread" aria-hidden="true">
+        <svg viewBox="0 0 160 1800" preserveAspectRatio="none">
+          <path
+            class="route-thread__route"
+            d="M72 0C111 170 38 332 69 500C101 668 103 804 57 970C23 1095 45 1282 85 1428C112 1530 81 1663 67 1800"
+          />
+          <path
+            class="route-thread__crack route-thread__crack--core"
+            pathLength="1"
+            data-crack-start="0"
+            data-crack-end="1"
+            d="M72 0C111 170 38 332 69 500C101 668 103 804 57 970C23 1095 45 1282 85 1428C112 1530 81 1663 67 1800"
+          />
+          <path
+            class="route-thread__crack route-thread__crack--branch"
+            pathLength="1"
+            data-crack-start="0.1"
+            data-crack-end="0.23"
+            d="M82 226L52 208L31 214M82 226L111 198L139 192"
+          />
+          <path
+            class="route-thread__crack route-thread__crack--branch"
+            pathLength="1"
+            data-crack-start="0.26"
+            data-crack-end="0.39"
+            d="M65 514L35 489L13 496M65 514L91 485L121 478L147 454"
+          />
+          <path
+            class="route-thread__crack route-thread__crack--branch"
+            pathLength="1"
+            data-crack-start="0.44"
+            data-crack-end="0.57"
+            d="M75 817L44 793L21 800M75 817L106 786L145 777"
+          />
+          <path
+            class="route-thread__crack route-thread__crack--branch"
+            pathLength="1"
+            data-crack-start="0.59"
+            data-crack-end="0.72"
+            d="M42 1128L16 1101M42 1128L75 1094L102 1089L137 1061"
+          />
+          <path
+            class="route-thread__crack route-thread__crack--branch"
+            pathLength="1"
+            data-crack-start="0.75"
+            data-crack-end="0.87"
+            d="M84 1436L50 1412L21 1419M84 1436L115 1407L147 1396"
+          />
+          <path
+            class="route-thread__crack route-thread__crack--branch"
+            pathLength="1"
+            data-crack-start="0.88"
+            data-crack-end="1"
+            d="M73 1692L40 1665L13 1671M73 1692L101 1660L145 1642"
+          />
+        </svg>
+      </div>
+
+      <section class="cargo-section section-shell" id="gruzi" aria-labelledby="cargo-title">
+        <div class="section-heading" data-reveal>
+          <p class="section-kicker">Под задачу, не под шаблон</p>
+          <h2 id="cargo-title">Перевозим грузы разного масштаба</h2>
+          <p>
+            Подбираем морскую или мультимодальную схему с учётом габаритов,
+            режима перевозки, сезона и конечного пункта на Чукотке.
+          </p>
+        </div>
+
+        <div class="cargo-layout">
+          <figure class="cargo-visual" data-reveal>
+            <picture>
+              <source srcset="assets/generated/cargo-operation-north.avif" type="image/avif">
+              <source srcset="assets/generated/cargo-operation-north.webp" type="image/webp">
+              <img
+                src="assets/generated/cargo-operation-north.png"
+                alt="Погрузка контейнера на судно в северном порту во время снегопада"
+                width="1536"
+                height="1024"
+                loading="lazy"
+                decoding="async"
+              >
+            </picture>
+            <figcaption>
+              <span>Северная грузовая операция</span>
+              <span>Морская перевозка</span>
+            </figcaption>
+          </figure>
+
+          <div class="cargo-manifest" data-reveal>
+            <article>
+              <span>01</span>
+              <h3>Контейнерные</h3>
+              <p>Стандартные контейнерные партии для морской линии.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>Сборные</h3>
+              <p>Объединение небольших партий в подходящую схему доставки.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>Генеральные</h3>
+              <p>Штучные и упакованные грузы с индивидуальными параметрами.</p>
+            </article>
+            <article>
+              <span>04</span>
+              <h3>Негабаритные и тяжеловесные</h3>
+              <p>Перевозка после проверки размеров, массы и ограничений маршрута.</p>
+            </article>
+            <article>
+              <span>05</span>
+              <h3>Спецтехника</h3>
+              <p>Доставка техники с подбором способа погрузки и крепления.</p>
+            </article>
+            <article>
+              <span>06</span>
+              <h3>Режимные</h3>
+              <p>Температурный режим учитывается при наличии подходящей схемы.</p>
+            </article>
+
+            <div class="cargo-air">
+              <span>Срочная задача</span>
+              <p>Для подходящих грузов рассматриваем авиаперевозку как дополнительный вариант.</p>
+            </div>
+          </div>
+        </div>
+
+        <button class="text-cta" type="button" data-open-calculation data-reveal>
+          Рассчитать перевозку
+        </button>
+      </section>
+
+      <section class="route-section section-shell" id="marshrut" aria-labelledby="route-title">
+        <div class="route-section__intro" data-reveal>
+          <p class="section-kicker">Северный морской путь</p>
+          <h2 id="route-title">Маршрут до огней Чукотки</h2>
+          <p>
+            Морской участок ведёт к Певеку. Для Билибино маршрут продолжается
+            по суше - конкретная схема зависит от груза, сезона и точки отправления.
+          </p>
+        </div>
+
+        <figure class="route-map" data-route-map data-reveal>
+          <div class="route-map__meta">
+            <span>Арктический маршрут</span>
+            <span>Схема / не навигационная карта</span>
+          </div>
+
+          <svg viewBox="0 0 1200 760" role="img" aria-labelledby="map-title map-description">
+            <title id="map-title">Схема доставки по Северному морскому пути</title>
+            <desc id="map-description">
+              Маршрут из Москвы и Санкт-Петербурга через Архангельск по Северному
+              морскому пути к Тикси, Черскому, Певеку и Билибино. На карте также
+              отмечены Мурманск и Якутск.
+            </desc>
+            <defs>
+              <pattern id="map-grid" width="92" height="92" patternUnits="userSpaceOnUse">
+                <path d="M92 0H0V92" fill="none" stroke="rgba(175, 202, 215, .11)" stroke-width="1"/>
+              </pattern>
+              <linearGradient id="sea-route" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0" stop-color="#8faab8"/>
+                <stop offset=".42" stop-color="#dce9ed"/>
+                <stop offset=".7" stop-color="#a8c6d1"/>
+                <stop offset="1" stop-color="#f6a13b"/>
+              </linearGradient>
+              <linearGradient id="feeder-route" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0" stop-color="#e67832"/>
+                <stop offset="1" stop-color="#ffb34f"/>
+              </linearGradient>
+              <radialGradient id="map-vignette" cx="50%" cy="46%" r="70%">
+                <stop offset="0" stop-color="#173143" stop-opacity=".08"/>
+                <stop offset=".72" stop-color="#06131e" stop-opacity=".12"/>
+                <stop offset="1" stop-color="#030b12" stop-opacity=".54"/>
+              </radialGradient>
+              <filter id="route-glow" x="-30%" y="-80%" width="160%" height="260%">
+                <feGaussianBlur stdDeviation="7" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="point-glow" x="-500%" y="-500%" width="1000%" height="1000%">
+                <feGaussianBlur stdDeviation="9"/>
+              </filter>
+              <clipPath id="map-clip">
+                <rect x="0" y="0" width="1200" height="760" rx="3"/>
+              </clipPath>
+            </defs>
+
+            <rect width="1200" height="760" fill="url(#map-grid)"/>
+            <g class="map-latitudes" aria-hidden="true">
+              <path d="M55 210H1145"/>
+              <path d="M55 390H1145"/>
+              <path d="M55 570H1145"/>
+            </g>
+            <image
+              class="route-map__land"
+              href="assets/generated/arctic-land.svg"
+              x="0"
+              y="0"
+              width="1200"
+              height="760"
+              preserveAspectRatio="none"
+              clip-path="url(#map-clip)"
+            />
+            <rect width="1200" height="760" fill="url(#map-vignette)" pointer-events="none"/>
+
+            <g class="map-feeders">
+              <path class="map-route map-route--feeder-glow" d="M170 486C178 445 196 394 189.5 324.2"/>
+              <path class="map-route map-route--feeder-glow" d="M126 444C147 420 172 394 189.5 324.2"/>
+              <path class="map-route map-route--feeder" d="M170 486C178 445 196 394 189.5 324.2"/>
+              <path class="map-route map-route--feeder" d="M126 444C147 420 172 394 189.5 324.2"/>
+              <path class="map-route map-route--feeder-signal" d="M170 486C178 445 196 394 189.5 324.2"/>
+              <path class="map-route map-route--feeder-signal" d="M126 444C147 420 172 394 189.5 324.2"/>
+            </g>
+
+            <g class="map-sea-route">
+              <path
+                class="map-route map-route--base"
+                d="M189.5 324.2C235 318 274 286 322 250C365 218 407 188 451 207C505 231 530 144 595 126C645 112 661 137 669 178C678 215 714 229 747 254C766 269 770 286 770 292C817 294 835 272 879 278C922 284 949 301 983.4 310.2"
+              />
+              <path
+                class="map-route map-route--glow"
+                d="M189.5 324.2C235 318 274 286 322 250C365 218 407 188 451 207C505 231 530 144 595 126C645 112 661 137 669 178C678 215 714 229 747 254C766 269 770 286 770 292C817 294 835 272 879 278C922 284 949 301 983.4 310.2"
+              />
+              <path
+                class="map-route map-route--sea"
+                pathLength="1"
+                d="M189.5 324.2C235 318 274 286 322 250C365 218 407 188 451 207C505 231 530 144 595 126C645 112 661 137 669 178C678 215 714 229 747 254C766 269 770 286 770 292C817 294 835 272 879 278C922 284 949 301 983.4 310.2"
+              />
+              <path
+                class="map-route map-route--signal"
+                d="M189.5 324.2C235 318 274 286 322 250C365 218 407 188 451 207C505 231 530 144 595 126C645 112 661 137 669 178C678 215 714 229 747 254C766 269 770 286 770 292C817 294 835 272 879 278C922 284 949 301 983.4 310.2"
+              />
+            </g>
+
+            <g class="map-chukotka-route">
+              <path class="map-route map-route--land-glow" d="M983.4 310.2L935 328L955 362L983.4 310.2"/>
+              <path class="map-route map-route--land" d="M983.4 310.2L935 328L955 362L983.4 310.2"/>
+              <path class="map-route map-route--land-signal" d="M983.4 310.2L935 328L955 362L983.4 310.2"/>
+            </g>
+
+            <g class="map-node map-node--reference" transform="translate(118 278)" style="--pulse-delay: -1.4s">
+              <circle class="map-node__pulse" r="17"/>
+              <circle class="map-node__ring" r="8"/>
+              <circle class="map-node__core" r="3"/>
+              <text class="map-node__label" x="-16" y="-18" text-anchor="end">Мурманск</text>
+            </g>
+
+            <g class="map-node map-node--origin" transform="translate(189.5 324.2)" style="--pulse-delay: -.2s">
+              <circle class="map-node__pulse" r="21"/>
+              <circle class="map-node__ring" r="10"/>
+              <circle class="map-node__core" r="4"/>
+              <text class="map-node__label" x="20" y="31">Архангельск</text>
+            </g>
+
+            <g class="map-node map-node--origin" transform="translate(126 444)" style="--pulse-delay: -.8s">
+              <circle class="map-node__pulse" r="17"/>
+              <circle class="map-node__ring" r="8"/>
+              <circle class="map-node__core" r="3"/>
+              <text class="map-node__label" x="0" y="31" text-anchor="middle">Санкт-Петербург</text>
+            </g>
+
+            <g class="map-node map-node--origin" transform="translate(170 486)" style="--pulse-delay: -1.8s">
+              <circle class="map-node__pulse" r="17"/>
+              <circle class="map-node__ring" r="8"/>
+              <circle class="map-node__core" r="3"/>
+              <text class="map-node__label" x="0" y="32" text-anchor="middle">Москва</text>
+            </g>
+
+            <g class="map-node map-node--port" transform="translate(770 292)" style="--pulse-delay: -1.1s">
+              <circle class="map-node__pulse" r="20"/>
+              <circle class="map-node__ring" r="10"/>
+              <circle class="map-node__core" r="4"/>
+              <text class="map-node__label" x="0" y="40" text-anchor="middle">Тикси</text>
+            </g>
+
+            <g class="map-node map-node--reference" transform="translate(760 478)" style="--pulse-delay: -.5s">
+              <circle class="map-node__pulse" r="17"/>
+              <circle class="map-node__ring" r="8"/>
+              <circle class="map-node__core" r="3"/>
+              <text class="map-node__label" x="0" y="39" text-anchor="middle">Якутск</text>
+            </g>
+
+            <g class="map-node map-node--destination" transform="translate(935 328)" style="--pulse-delay: -1.7s">
+              <circle class="map-node__pulse" r="20"/>
+              <circle class="map-node__ring" r="10"/>
+              <circle class="map-node__core" r="4"/>
+              <text class="map-node__label" x="-18" y="-18" text-anchor="end">Черский</text>
+            </g>
+
+            <g class="map-node map-node--destination" transform="translate(955 362)" style="--pulse-delay: -.9s">
+              <circle class="map-node__pulse" r="20"/>
+              <circle class="map-node__ring" r="10"/>
+              <circle class="map-node__core" r="4"/>
+              <text class="map-node__label" x="-18" y="46" text-anchor="end">Билибино</text>
+            </g>
+
+            <g class="map-node map-node--destination map-node--pevek" transform="translate(983.4 310.2)" style="--pulse-delay: -.1s">
+              <circle class="map-node__pulse" r="26"/>
+              <circle class="map-node__ring" r="13"/>
+              <circle class="map-node__core" r="5"/>
+              <text class="map-node__label" x="28" y="-13">Певек</text>
+            </g>
+
+            <text class="map-coordinate" x="72" y="706">69°42′ с. ш.</text>
+            <text class="map-coordinate" x="1128" y="706" text-anchor="end">170°18′ в. д.</text>
+          </svg>
+
+          <div class="route-map__destinations" aria-label="Пункты маршрута">
+            <div><span>Отправление</span><strong>Москва</strong></div>
+            <div><span>Отправление</span><strong>Санкт-Петербург</strong></div>
+            <div><span>Порт</span><strong>Архангельск</strong></div>
+            <div><span>Порт</span><strong>Мурманск</strong></div>
+            <div><span>Северный морской путь</span><strong>Тикси</strong></div>
+            <div><span>Ориентир</span><strong>Якутск</strong></div>
+            <div><span>Чукотка</span><strong>Черский</strong></div>
+            <div><span>Чукотка</span><strong>Билибино</strong></div>
+            <div><span>Морской порт</span><strong>Певек</strong></div>
+          </div>
+
+          <figcaption>
+            Способ и маршрут доставки определяются после уточнения города отправления,
+            параметров груза и требуемого срока.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="process-section section-shell" id="kak-rabotaem" aria-labelledby="process-title">
+        <div class="process-heading" data-reveal>
+          <p class="section-kicker">Как строится перевозка</p>
+          <h2 id="process-title">Сначала параметры. Затем маршрут.</h2>
+        </div>
+
+        <div class="process-layout">
+          <ol class="process-list">
+            <li data-reveal>
+              <span>01</span>
+              <div>
+                <h3>Получаем задачу</h3>
+                <p>Вы передаёте параметры груза, точку отправления и пункт назначения.</p>
+              </div>
+            </li>
+            <li data-reveal>
+              <span>02</span>
+              <div>
+                <h3>Проверяем ограничения</h3>
+                <p>Уточняем сезонность, требования к транспорту, габариты и режим перевозки.</p>
+              </div>
+            </li>
+            <li data-reveal>
+              <span>03</span>
+              <div>
+                <h3>Подбираем схему</h3>
+                <p>Определяем способ доставки и рассчитываем стоимость под конкретную задачу.</p>
+              </div>
+            </li>
+            <li data-reveal>
+              <span>04</span>
+              <div>
+                <h3>Организуем перевозку</h3>
+                <p>После согласования выстраиваем маршрут и сопровождаем движение груза.</p>
+              </div>
+            </li>
+          </ol>
+
+          <figure class="process-visual" data-reveal>
+            <picture>
+              <source srcset="assets/generated/arrival-northern-port.avif" type="image/avif">
+              <source srcset="assets/generated/arrival-northern-port.webp" type="image/webp">
+              <img
+                src="assets/generated/arrival-northern-port.png"
+                alt="Грузовое судно подходит к огням северного порта"
+                width="1672"
+                height="941"
+                loading="lazy"
+                decoding="async"
+              >
+            </picture>
+            <figcaption>Прибытие к северному порту</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="company-section" id="o-kompanii" aria-labelledby="company-title">
+        <div class="company-scene" aria-hidden="true">
+          <picture>
+            <source srcset="assets/generated/company-land-convoy.avif" type="image/avif">
+            <source srcset="assets/generated/company-land-convoy.webp" type="image/webp">
+            <img
+              src="assets/generated/company-land-convoy.png"
+              alt=""
+              width="1672"
+              height="941"
+              loading="lazy"
+              decoding="async"
+            >
+          </picture>
+        </div>
+
+        <div class="company-section__inner section-shell">
+          <div class="company-copy" data-reveal>
+            <p class="section-kicker">Транспортная компания «Горизонт»</p>
+            <h2 id="company-title">Северная логистика без готовых шаблонов</h2>
+            <p>
+              Работаем с 2019 года и подбираем мультимодальные маршруты
+              под условия конкретной перевозки на Чукотку.
+            </p>
+          </div>
+
+          <dl class="company-facts" data-reveal>
+            <div>
+              <dt>С 2019 года</dt>
+              <dd>организуем грузовые перевозки</dd>
+            </div>
+            <div>
+              <dt>Северная специализация</dt>
+              <dd>учитываем сезонность и ограничения маршрута</dd>
+            </div>
+            <div>
+              <dt>Мультимодально</dt>
+              <dd>связываем морской и наземный участки</dd>
+            </div>
+            <div>
+              <dt>Под конкретный груз</dt>
+              <dd>подбираем схему после изучения параметров</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="request-section section-shell" id="raschet" aria-labelledby="request-title">
+        <div class="request-intro" data-reveal>
+          <p class="section-kicker">Расчёт перевозки</p>
+          <h2 id="request-title">Передайте параметры груза</h2>
+          <p>
+            Чем подробнее исходные данные, тем точнее логист сможет определить
+            возможную схему и подготовить расчёт.
+          </p>
+          <div class="request-contact">
+            <span>Прямой контакт</span>
+            <a href="tel:+79367772255" data-analytics="phone_click">8 936 777-22-55</a>
+          </div>
+        </div>
+
+        <form class="calculation-form calculation-form--full" novalidate data-form-location="page" data-reveal>
+          <div class="form-row">
+            <div class="field">
+              <label for="full-name">Имя</label>
+              <input id="full-name" name="name" type="text" autocomplete="name" placeholder="Как к вам обращаться">
+            </div>
+            <div class="field">
+              <label for="full-phone">Телефон <span aria-hidden="true">*</span></label>
+              <input
+                id="full-phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                placeholder="+7 900 000-00-00"
+                aria-describedby="full-phone-error"
+                required
+              >
+              <span class="field__error" id="full-phone-error" aria-live="polite"></span>
+            </div>
+          </div>
+
+            <div class="field">
+              <label for="full-email">Электронная почта</label>
+              <input
+                id="full-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="mail@example.ru"
+                aria-describedby="full-email-error"
+              >
+              <span class="field__error" id="full-email-error" aria-live="polite"></span>
+            </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="full-origin">Откуда забрать <span aria-hidden="true">*</span></label>
+              <input
+                id="full-origin"
+                name="origin"
+                type="text"
+                placeholder="Город или регион"
+                aria-describedby="full-origin-error"
+                required
+              >
+              <span class="field__error" id="full-origin-error" aria-live="polite"></span>
+            </div>
+            <div class="field">
+              <label for="full-destination">Куда доставить <span aria-hidden="true">*</span></label>
+              <select
+                id="full-destination"
+                name="destination"
+                aria-describedby="full-destination-error"
+                required
+              >
+                <option value="">Выберите направление</option>
+                <option value="Певек">Певек</option>
+                <option value="Билибино">Билибино</option>
+                <option value="Другой населённый пункт Чукотки">Другой пункт Чукотки</option>
+              </select>
+              <span class="field__error" id="full-destination-error" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="full-cargo">Описание груза <span aria-hidden="true">*</span></label>
+              <textarea
+                id="full-cargo"
+                name="cargo_description"
+                rows="3"
+                placeholder="Тип груза, особенности упаковки"
+                aria-describedby="full-cargo-error"
+                required
+              ></textarea>
+              <span class="field__error" id="full-cargo-error" aria-live="polite"></span>
+            </div>
+            <div class="field">
+              <label for="full-weight">Вес и объём</label>
+              <textarea id="full-weight" name="weight_volume" rows="3" placeholder="Если известны"></textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="full-comment">Комментарий</label>
+            <textarea id="full-comment" name="comment" rows="3" placeholder="Сроки, особые условия или вопросы"></textarea>
+          </div>
+
+          <div class="consent-field">
+            <input
+              id="full-consent"
+              name="consent"
+              type="checkbox"
+              aria-describedby="full-consent-error full-consent-note"
+              required
+            >
+            <label for="full-consent">Я согласен на обработку персональных данных</label>
+            <span class="field__error" id="full-consent-error" aria-live="polite"></span>
+            <span class="consent-field__note" id="full-consent-note">
+              Документ будет добавлен до публикации сайта.
+            </span>
+          </div>
+
+          <button class="button button--submit" type="submit">
+            <span>Получить расчёт</span>
+          </button>
+          <p class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="kontakty">
+      <div class="site-footer__inner section-shell">
+        <div class="footer-brand">
+          <a class="brand" href="#hero" aria-label="Горизонт - на первый экран">
+            <img src="assets/logo.png" alt="Горизонт - северная логистика" width="1188" height="237" loading="lazy">
+          </a>
+          <p>Организация доставки грузов на Чукотку.</p>
+        </div>
+
+        <div class="footer-contacts">
+          <span>Контакты</span>
+          <a href="tel:+79367772255" data-analytics="phone_click">8 936 777-22-55</a>
+          <a href="mailto:info@24dmp.ru" data-analytics="email_click">info@24dmp.ru</a>
+          <p>Пн-Пт, 9:00-18:00 по московскому времени</p>
+        </div>
+
+        <div class="footer-route">
+          <span>Основные направления</span>
+          <strong>Певек</strong>
+          <strong>Билибино</strong>
+        </div>
+
+        <div class="footer-legal">
+          <span>Политика конфиденциальности</span>
+          <span>Согласие на обработку данных</span>
+          <small>Документы будут добавлены до публикации сайта.</small>
+        </div>
+      </div>
+    </footer>
+
+    <dialog class="mobile-menu" id="mobile-menu" aria-label="Меню сайта">
+      <div class="mobile-menu__top">
+        <span>Навигация</span>
+        <button type="button" aria-label="Закрыть меню" data-close-menu>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+      <nav aria-label="Мобильная навигация">
+        <a href="#gruzi">Грузы</a>
+        <a href="#marshrut">Маршрут</a>
+        <a href="#kak-rabotaem">Как работаем</a>
+        <a href="#o-kompanii">О компании</a>
+        <a href="#kontakty">Контакты</a>
+      </nav>
+      <button class="button button--primary" type="button" data-open-calculation>
+        <span>Рассчитать стоимость</span>
+      </button>
+    </dialog>
+
+    <dialog class="calculation-dialog" aria-labelledby="calculation-title">
+      <div class="dialog-shell">
+        <button class="dialog-close" type="button" data-close-calculation aria-label="Закрыть форму">
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="dialog-intro">
+          <p class="dialog-intro__index">Заявка / 01</p>
+          <h2 id="calculation-title">Рассчитать перевозку</h2>
+          <p>
+            Передайте основные параметры. Логист проверит возможную схему
+            и свяжется для уточнения деталей.
+          </p>
+          <div class="dialog-route" aria-hidden="true">
+            <span class="dialog-route__node"></span>
+            <span class="dialog-route__line"></span>
+            <span class="dialog-route__node dialog-route__node--active"></span>
+          </div>
+          <p class="dialog-intro__note">Расчёт выполняется после изучения параметров груза.</p>
+        </div>
+
+        <form class="calculation-form" novalidate>
+          <div class="field">
+            <label for="phone">Телефон <span aria-hidden="true">*</span></label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autocomplete="tel"
+              inputmode="tel"
+              placeholder="+7 900 000-00-00"
+              aria-describedby="phone-error"
+              required
+            >
+            <span class="field__error" id="phone-error" aria-live="polite"></span>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="origin">Откуда забрать <span aria-hidden="true">*</span></label>
+              <input
+                id="origin"
+                name="origin"
+                type="text"
+                autocomplete="address-level1"
+                placeholder="Город или регион"
+                aria-describedby="origin-error"
+                required
+              >
+              <span class="field__error" id="origin-error" aria-live="polite"></span>
+            </div>
+
+            <div class="field">
+              <label for="destination">Куда доставить <span aria-hidden="true">*</span></label>
+              <select
+                id="destination"
+                name="destination"
+                aria-describedby="destination-error"
+                required
+              >
+                <option value="">Выберите направление</option>
+                <option value="Певек">Певек</option>
+                <option value="Билибино">Билибино</option>
+                <option value="Другой населённый пункт Чукотки">Другой пункт Чукотки</option>
+              </select>
+              <span class="field__error" id="destination-error" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="cargo_description">Описание груза <span aria-hidden="true">*</span></label>
+            <textarea
+              id="cargo_description"
+              name="cargo_description"
+              rows="3"
+              placeholder="Тип груза, вес и объём, если известны"
+              aria-describedby="cargo-description-error"
+              required
+            ></textarea>
+            <span class="field__error" id="cargo-description-error" aria-live="polite"></span>
+          </div>
+
+          <div class="consent-field">
+            <input
+              id="consent"
+              name="consent"
+              type="checkbox"
+              aria-describedby="consent-error consent-note"
+              required
+            >
+            <label for="consent">
+              Я согласен на обработку персональных данных
+            </label>
+            <span class="field__error" id="consent-error" aria-live="polite"></span>
+            <span class="consent-field__note" id="consent-note">
+              Документ будет добавлен до публикации сайта.
+            </span>
+          </div>
+
+          <button class="button button--submit" type="submit">
+            <span>Передать параметры</span>
+          </button>
+
+          <p class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </dialog>
+  </body>
+</html>
