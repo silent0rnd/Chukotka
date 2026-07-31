@@ -1744,16 +1744,97 @@ main {
   stroke-width: 0.8;
 }
 
+/* Появление разведено по типу контента. Один и тот же
+   translateY(30px) + fade на всех шестнадцати элементах прямо
+   запрещён AGENTS.md и не давал никакой иерархии: заголовок,
+   список и фотография возникали одинаково.
+   Значение data-reveal ставится в разметке, JS не меняется -
+   он по-прежнему просто вешает .is-visible. */
 .js [data-reveal] {
   opacity: 0;
-  transform: translateY(30px);
-  transition:
-    opacity 800ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .js [data-reveal].is-visible {
   opacity: 1;
+}
+
+/* Важно: clip-path висит на потомках, а не на самом [data-reveal].
+   Обрезанный элемент имеет нулевую площадь пересечения, и
+   IntersectionObserver с threshold 0.08 для него не срабатывает
+   никогда - блок так и остаётся невидимым. */
+
+/* Заголовочные блоки: строки раскрываются маской сверху вниз. */
+.js [data-reveal="heading"] > * {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.js [data-reveal="heading"].is-visible > * {
+  clip-path: inset(0 0 0 0);
+}
+
+.js [data-reveal="heading"].is-visible > :nth-child(2) { transition-delay: 90ms; }
+.js [data-reveal="heading"].is-visible > :nth-child(3) { transition-delay: 180ms; }
+
+/* Кадры: раскрытие слева направо, изображение доезжает из наезда. */
+.js [data-reveal="figure"] picture,
+.js [data-reveal="figure"] > svg {
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path 1000ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.js [data-reveal="figure"].is-visible picture,
+.js [data-reveal="figure"].is-visible > svg {
+  clip-path: inset(0 0 0 0);
+}
+
+.js [data-reveal="figure"] img {
+  transform: scale(1.07);
+  transition: transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.js [data-reveal="figure"].is-visible img {
+  transform: scale(1);
+}
+
+/* Списки: строка выезжает сбоку, вдоль направления чтения. */
+.js [data-reveal="list"] {
+  transform: translateX(-22px);
+  transition:
+    opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.js [data-reveal="list"].is-visible {
+  transform: translateX(0);
+}
+
+/* Строки внутри контейнера-списка идут стаггером. */
+.js [data-reveal="list"] > * {
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.js [data-reveal="list"].is-visible > * {
+  opacity: 1;
+}
+
+.js [data-reveal="list"].is-visible > :nth-child(2) { transition-delay: 70ms; }
+.js [data-reveal="list"].is-visible > :nth-child(3) { transition-delay: 140ms; }
+.js [data-reveal="list"].is-visible > :nth-child(4) { transition-delay: 210ms; }
+.js [data-reveal="list"].is-visible > :nth-child(5) { transition-delay: 280ms; }
+.js [data-reveal="list"].is-visible > :nth-child(6) { transition-delay: 350ms; }
+
+/* Панель формы: самый спокойный и длинный подъём на странице. */
+.js [data-reveal="panel"] {
+  transform: translateY(34px);
+  transition:
+    opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.js [data-reveal="panel"].is-visible {
   transform: translateY(0);
 }
 
@@ -1879,9 +1960,135 @@ main {
     transform 300ms ease;
 }
 
-.cargo-manifest article:hover::before {
-  opacity: 1;
-  transform: scaleX(1);
+/* P-02: реакция на курсор по блокам. Всё за (hover: hover), чтобы
+   на тач-устройствах состояния не залипали.
+   Прежний ховер строк грузов был заливкой с альфой 0.08 и читался
+   как выделение по умолчанию, а не как оформленное состояние. */
+@media (hover: hover) {
+  .cargo-manifest article:hover::before {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  /* Строка груза: амберная линия растёт по верхней границе,
+     номер уходит в акцент, заголовок делает шаг вправо. */
+  .cargo-manifest article::after {
+    position: absolute;
+    z-index: 2;
+    top: -1px;
+    right: 0;
+    left: 0;
+    height: 1px;
+    content: "";
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cargo-manifest article:hover::after {
+    transform: scaleX(1);
+  }
+
+  .cargo-manifest article > span,
+  .cargo-manifest h3 {
+    transition:
+      color 260ms ease,
+      transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cargo-manifest article:hover > span {
+    color: var(--signal);
+  }
+
+  .cargo-manifest article:hover h3 {
+    transform: translateX(7px);
+  }
+
+  /* Шаг процесса: номер загорается, строка подаётся вперёд -
+     маршрут «доходит» до этой точки. */
+  .process-list li {
+    transition: border-color 260ms ease;
+  }
+
+  .process-list li > span,
+  .process-list h3 {
+    transition:
+      color 260ms ease,
+      transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .process-list li:hover {
+    border-top-color: var(--line-strong);
+  }
+
+  .process-list li:hover > span {
+    color: var(--signal-bright);
+    transform: translateX(4px);
+  }
+
+  .process-list li:hover h3 {
+    transform: translateX(6px);
+  }
+
+  /* Факт о компании: по строке проходит холодный отблеск. */
+  .company-facts div {
+    position: relative;
+    transition: border-color 260ms ease;
+  }
+
+  .company-facts div::before {
+    position: absolute;
+    inset: 0 -14px;
+    content: "";
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(var(--glow-ice), 0.09) 42%,
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 280ms ease;
+    pointer-events: none;
+  }
+
+  .company-facts div:hover::before {
+    opacity: 1;
+  }
+
+  .company-facts div:hover {
+    border-bottom-color: rgba(222, 235, 241, 0.4);
+  }
+
+  /* Узел карты: единственная интеракция, которой у карты не было.
+     cursor: default не лишний - SVG <text> названий городов иначе
+     даёт курсор выделения текста. */
+  .map-node {
+    cursor: default;
+  }
+
+  .map-node__core,
+  .map-node__ring,
+  .map-node__label {
+    transition:
+      transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+      fill 260ms ease,
+      stroke 260ms ease;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .map-node:hover .map-node__core {
+    transform: scale(1.9);
+  }
+
+  .map-node:hover .map-node__ring {
+    stroke: var(--signal-bright);
+  }
+
+  .map-node:hover .map-node__label {
+    fill: var(--signal-bright);
+  }
 }
 
 .cargo-manifest article > * {
@@ -3528,8 +3735,12 @@ main {
     display: none;
   }
 
-  .js [data-reveal] {
+  .js [data-reveal],
+  .js [data-reveal] > *,
+  .js [data-reveal="figure"] picture,
+  .js [data-reveal="figure"] img {
     opacity: 1;
+    clip-path: none;
     transform: none;
   }
 

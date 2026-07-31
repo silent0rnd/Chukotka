@@ -9,8 +9,8 @@
     >
     <meta name="theme-color" content="#07111b">
     <title>Доставка грузов на Чукотку - транспортная компания «Горизонт»</title>
-    <link rel="stylesheet" href="styles.css?v=20260730-7">
-    <script src="script.js?v=20260730-7" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260730-9">
+    <script src="script.js?v=20260730-9" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#hero-content">Перейти к содержанию</a>
@@ -327,7 +327,7 @@
       </div>
 
       <section class="cargo-section section-shell" id="gruzi" aria-labelledby="cargo-title">
-        <div class="section-heading" data-reveal>
+        <div class="section-heading" data-reveal="heading">
           <p class="section-kicker">Под задачу, не под шаблон</p>
           <h2 id="cargo-title">Перевозим грузы разного масштаба</h2>
           <p>
@@ -337,7 +337,7 @@
         </div>
 
         <div class="cargo-layout">
-          <figure class="cargo-visual" data-reveal>
+          <figure class="cargo-visual" data-reveal="figure">
             <picture>
               <source srcset="assets/generated/cargo-operation-north.avif" type="image/avif">
               <source srcset="assets/generated/cargo-operation-north.webp" type="image/webp">
@@ -356,7 +356,7 @@
             </figcaption>
           </figure>
 
-          <div class="cargo-manifest" data-reveal>
+          <div class="cargo-manifest" data-reveal="list">
             <article>
               <span>01</span>
               <h3>Контейнерные</h3>
@@ -401,7 +401,7 @@
       </section>
 
       <section class="route-section section-shell" id="marshrut" aria-labelledby="route-title">
-        <div class="route-section__intro" data-reveal>
+        <div class="route-section__intro" data-reveal="heading">
           <p class="section-kicker">Северный морской путь</p>
           <h2 id="route-title">Маршрут до&nbsp;огней Чукотки</h2>
           <p>
@@ -410,7 +410,7 @@
           </p>
         </div>
 
-        <figure class="route-map" data-route-map data-reveal>
+        <figure class="route-map" data-route-map data-reveal="figure">
           <div class="route-map__meta">
             <span>Арктический маршрут</span>
             <span>Схема / не навигационная карта</span>
@@ -601,35 +601,35 @@
       </section>
 
       <section class="process-section section-shell" id="kak-rabotaem" aria-labelledby="process-title">
-        <div class="process-heading" data-reveal>
+        <div class="process-heading" data-reveal="heading">
           <p class="section-kicker">Как строится перевозка</p>
           <h2 id="process-title">Сначала параметры. Затем маршрут.</h2>
         </div>
 
         <div class="process-layout">
           <ol class="process-list">
-            <li data-reveal>
+            <li data-reveal="list">
               <span>01</span>
               <div>
                 <h3>Получаем задачу</h3>
                 <p>Вы передаёте параметры груза, точку отправления и пункт назначения.</p>
               </div>
             </li>
-            <li data-reveal>
+            <li data-reveal="list">
               <span>02</span>
               <div>
                 <h3>Проверяем ограничения</h3>
                 <p>Уточняем сезонность, требования к&nbsp;транспорту, габариты и&nbsp;режим перевозки.</p>
               </div>
             </li>
-            <li data-reveal>
+            <li data-reveal="list">
               <span>03</span>
               <div>
                 <h3>Подбираем схему</h3>
                 <p>Определяем способ доставки и&nbsp;рассчитываем стоимость под конкретную задачу.</p>
               </div>
             </li>
-            <li data-reveal>
+            <li data-reveal="list">
               <span>04</span>
               <div>
                 <h3>Организуем перевозку</h3>
@@ -638,7 +638,7 @@
             </li>
           </ol>
 
-          <figure class="process-visual" data-reveal>
+          <figure class="process-visual" data-reveal="figure">
             <picture>
               <source srcset="assets/generated/arrival-northern-port.avif" type="image/avif">
               <source srcset="assets/generated/arrival-northern-port.webp" type="image/webp">
@@ -673,7 +673,7 @@
         </div>
 
         <div class="company-section__inner section-shell">
-          <div class="company-copy" data-reveal>
+          <div class="company-copy" data-reveal="heading">
             <p class="section-kicker">Транспортная компания «Горизонт»</p>
             <h2 id="company-title">Северная логистика без готовых шаблонов</h2>
             <p>
@@ -682,7 +682,7 @@
             </p>
           </div>
 
-          <dl class="company-facts" data-reveal>
+          <dl class="company-facts" data-reveal="list">
             <div>
               <dt>С 2019 года</dt>
               <dd>организуем грузовые перевозки</dd>
@@ -704,7 +704,7 @@
       </section>
 
       <section class="request-section section-shell" id="raschet" aria-labelledby="request-title">
-        <div class="request-intro" data-reveal>
+        <div class="request-intro" data-reveal="heading">
           <p class="section-kicker">Расчёт перевозки</p>
           <h2 id="request-title">Передайте параметры груза</h2>
           <p>
@@ -717,7 +717,7 @@
           </div>
         </div>
 
-        <form class="calculation-form calculation-form--full" novalidate data-form-location="page" data-reveal>
+        <form class="calculation-form calculation-form--full" novalidate data-form-location="page" data-reveal="panel">
           <div class="form-row">
             <div class="field">
               <label for="full-name">Имя</label>
