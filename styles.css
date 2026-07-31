@@ -64,6 +64,13 @@
   --glow-steel: 62, 100, 124;
   --glow-warm: 236, 168, 98;
 
+  /* Шкала вертикального ритма. Раньше каждая секция несла свой
+     clamp(), и все стыки выходили одинаковыми ~201px независимо от
+     задачи секции. Три шага задают плотность осознанно. */
+  --pace-tight: clamp(84px, 9vw, 132px);
+  --pace-base: clamp(120px, 14vw, 210px);
+  --pace-wide: clamp(150px, 17vw, 250px);
+
   --content: min(1360px, calc(100vw - 80px));
   --font-display: "Bahnschrift", "DIN 2014", "Arial Narrow", sans-serif;
   --font-body: "Geologica", "Segoe UI", sans-serif;
@@ -1744,10 +1751,13 @@ main {
   transform: translateY(0);
 }
 
+/* Грузы: обычная редакционная плотность. */
 .cargo-section {
   isolation: auto;
-  padding-top: clamp(110px, 13vw, 190px);
-  padding-bottom: clamp(120px, 14vw, 210px);
+  padding-top: var(--pace-base);
+  /* Плотный выход в «Маршрут»: сжатие ритма само работает переходом,
+     поэтому световой шов там не нужен. */
+  padding-bottom: var(--pace-tight);
 }
 
 .cargo-section::before {
@@ -1946,14 +1956,17 @@ main {
   background: var(--signal);
 }
 
+/* Маршрут: самая плотная и техничная секция страницы. */
 .route-section {
   position: relative;
-  padding-bottom: clamp(120px, 14vw, 210px);
+  padding-top: var(--pace-tight);
+  padding-bottom: var(--pace-base);
 }
 
-/* Световой шов между секциями. Каждая секция задаёт свои
-   --seam-* и получает собственную температуру света. */
-.route-section::before,
+/* Световой шов между секциями, у каждой своя температура.
+   .route-section исключена намеренно: вход в «Маршрут» решает сжатие
+   ритма. Раньше все стыки были одной световой полосой, что нарушало
+   требование AGENTS.md о трёх разных типах перехода. */
 .process-section::before,
 .request-section::before {
   --seam-glow: var(--glow-cold);
@@ -1975,13 +1988,6 @@ main {
     linear-gradient(180deg, transparent, rgba(9, 24, 34, 0.2), transparent);
   filter: blur(22px);
   pointer-events: none;
-}
-
-/* Маршрут: холодный свет по центру, над картой */
-.route-section::before {
-  --seam-glow: var(--glow-ice);
-  --seam-alpha: 0.13;
-  --seam-x: 48%;
 }
 
 /* Как работаем: свет приходит справа, со стороны кадра с портом */
@@ -2296,9 +2302,10 @@ main {
   }
 }
 
+/* Как работаем: обратно к воздуху перед полноэкранным кадром компании. */
 .process-section {
   position: relative;
-  padding-bottom: clamp(120px, 14vw, 210px);
+  padding-bottom: var(--pace-wide);
 }
 
 .process-heading {
@@ -2360,11 +2367,16 @@ main {
   line-height: 1.55;
 }
 
+/* P-07: было «текст слева, картинка справа» с общими верхом и низом -
+   единственная шаблонная композиция на странице. Кадр поднимается в
+   пустоту рядом с заголовком и уходит за правый край макета:
+   выравнивание по краям ломается, справа от заголовка больше не пусто.
+   Горизонтального скролла не будет - main имеет overflow: clip. */
 .process-visual {
   position: relative;
   z-index: 1;
   min-height: 650px;
-  margin: 0;
+  margin: clamp(-200px, -11vw, -90px) calc((var(--content) - 100vw) / 2) 0 0;
   overflow: hidden;
   border: 1px solid var(--line);
 }
@@ -2510,10 +2522,12 @@ main {
   line-height: 1.5;
 }
 
+/* Расчёт: собранный финал. Нижний шаг укорочен - форма заканчивалась
+   за 187px до футера и висела в пустоте (P-11). */
 .request-section {
   position: relative;
-  padding-top: clamp(120px, 14vw, 210px);
-  padding-bottom: clamp(120px, 13vw, 190px);
+  padding-top: var(--pace-base);
+  padding-bottom: var(--pace-tight);
   display: grid;
   grid-template-columns: minmax(0, 0.82fr) minmax(560px, 1.18fr);
   align-items: start;
@@ -3171,10 +3185,13 @@ main {
     line-height: 1.55;
   }
 
-  .cargo-section,
-  .request-section {
-    padding-top: 100px;
-    padding-bottom: 110px;
+  /* Мобильная шкала: те же три шага, что на десктопе, но короче.
+     Раньше здесь стояли одинаковые 100/110px, и смена плотности,
+     заданная на десктопе, на мобильных пропадала. */
+  :root {
+    --pace-tight: 68px;
+    --pace-base: 100px;
+    --pace-wide: 132px;
   }
 
   .cargo-layout,
@@ -3215,11 +3232,6 @@ main {
   .text-cta {
     width: 100%;
     margin-top: 44px;
-  }
-
-  .route-section,
-  .process-section {
-    padding-bottom: 110px;
   }
 
   .route-map {
@@ -3299,6 +3311,9 @@ main {
 
   .process-visual {
     min-height: 490px;
+    /* Подъём кадра работает только в двухколоночной сетке. Здесь
+       колонка одна, и отрицательный отступ наезжал бы на последний шаг. */
+    margin-top: 0;
   }
 
   .company-section {
