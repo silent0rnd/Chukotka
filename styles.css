@@ -2101,12 +2101,14 @@ main {
   text-transform: uppercase;
 }
 
+/* min-height снят: после кропа viewBox холст стал широким (1140x500),
+   и жёсткие 560px добавляли бы пустые поля сверху и снизу вместо
+   того, чтобы маршрут заполнял кадр. */
 .route-map svg {
   position: relative;
   z-index: 1;
   width: 100%;
   height: auto;
-  min-height: 560px;
   display: block;
 }
 
@@ -2261,16 +2263,17 @@ main {
   letter-spacing: 0.12em;
 }
 
+/* Дисклеймер вынесен из-под карты вниз - тот же приём, что уже был
+   в мобильной версии; поверх карты он сталкивался с координатой. */
 .route-map figcaption {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  right: 32px;
-  bottom: 26px;
-  width: min(450px, 44%);
+  margin: 0 32px;
+  padding: 18px 0 22px;
+  border-top: 1px solid var(--line);
   color: rgba(237, 244, 247, 0.45);
   font-size: 11px;
   line-height: 1.55;
-  text-align: right;
 }
 
 .route-map__destinations {
@@ -2986,9 +2989,10 @@ main {
     gap: 9px;
   }
 
+  /* 44px - минимальная тап-зона; было 42. */
   .header-phone {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     justify-content: center;
     border: 1px solid rgba(237, 244, 247, 0.22);
@@ -3008,8 +3012,22 @@ main {
   }
 
   .menu-toggle {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Тап-зоны второстепенных ссылок: были 36-40px по высоте. */
+  .button--secondary,
+  .footer-contacts a,
+  .request-contact a {
+    min-height: 44px;
+    align-items: center;
+    display: inline-flex;
+  }
+
+  .consent-field input {
+    width: 22px;
+    height: 22px;
   }
 
   .hero {
@@ -3078,7 +3096,7 @@ main {
   }
 
   .button--secondary {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .hero__route {
@@ -3257,6 +3275,12 @@ main {
     margin-top: 48px;
   }
 
+  /* После кропа карта стала ниже, и линия маршрута выходила прямо
+     под накладную метку. Сдвигаем холст под неё. */
+  .route-map svg {
+    margin-top: 30px;
+  }
+
   .route-map__meta {
     top: 16px;
     right: 16px;
@@ -3310,14 +3334,8 @@ main {
   }
 
   .route-map figcaption {
-    position: relative;
-    right: auto;
-    bottom: auto;
-    width: auto;
-    border-top: 1px solid var(--line);
     margin: 0 16px;
     padding: 18px 0 20px;
-    text-align: left;
   }
 
   .process-layout {

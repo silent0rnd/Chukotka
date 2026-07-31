@@ -9,8 +9,8 @@
     >
     <meta name="theme-color" content="#07111b">
     <title>Доставка грузов на Чукотку - транспортная компания «Горизонт»</title>
-    <link rel="stylesheet" href="styles.css?v=20260730-6">
-    <script src="script.js?v=20260730-6" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260730-7">
+    <script src="script.js?v=20260730-7" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#hero-content">Перейти к содержанию</a>
@@ -416,7 +416,11 @@
             <span>Схема / не навигационная карта</span>
           </div>
 
-          <svg viewBox="0 0 1200 760" role="img" aria-labelledby="map-title map-description">
+          <!-- Кроп по маршруту. Контент занимает x 12-1075, y 122-522
+               исходного холста 1200x760: нижние 240 единиц были пустой
+               сушей, из-за чего на мобильных карта вырождалась в полосу
+               точек в верхней трети кадра. -->
+          <svg viewBox="0 68 1140 500" role="img" aria-labelledby="map-title map-description">
             <title id="map-title">Схема доставки по Северному морскому пути</title>
             <desc id="map-description">
               Маршрут из Москвы и Санкт-Петербурга через Архангельск по Северному
@@ -573,10 +577,8 @@
               <text class="map-node__label" x="28" y="-13">Певек</text>
             </g>
 
-            <text class="map-coordinate" x="72" y="706">69°42′ с. ш.</text>
-            <!-- y=660, а не 706: на 706 координата налезала на текст
-                 дисклеймера, прижатый к правому нижнему углу карты. -->
-            <text class="map-coordinate" x="1128" y="660" text-anchor="end">170°18′ в. д.</text>
+            <text class="map-coordinate" x="24" y="548">69°42′ с. ш.</text>
+            <text class="map-coordinate" x="1116" y="548" text-anchor="end">170°18′ в. д.</text>
           </svg>
 
           <div class="route-map__destinations" aria-label="Пункты маршрута">
