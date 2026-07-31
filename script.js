@@ -55,7 +55,6 @@ function closeCalculation() {
   if (!dialog?.open) return;
 
   dialog.close();
-  delete document.body.dataset.modalOpen;
   previouslyFocusedElement?.focus();
 }
 
@@ -72,7 +71,6 @@ function closeMenu() {
   if (!mobileMenu?.open) return;
 
   mobileMenu.close();
-  delete document.body.dataset.modalOpen;
   previouslyFocusedElement?.focus();
 }
 
@@ -129,8 +127,15 @@ dialog?.addEventListener("click", (event) => {
   if (event.target === dialog) closeCalculation();
 });
 
-dialog?.addEventListener("close", () => {
-  delete document.body.dataset.modalOpen;
+/* Слушатель close висел только на dialog, но не на mobileMenu.
+   Нативный <dialog> закрывается по Escape без участия closeMenu(),
+   поэтому data-modal-open оставался на body вместе с
+   overflow: hidden - после закрытия меню страница переставала
+   скроллиться. Оба диалога снимают флаг в одном месте. */
+[dialog, mobileMenu].forEach((element) => {
+  element?.addEventListener("close", () => {
+    delete document.body.dataset.modalOpen;
+  });
 });
 
 dialog?.addEventListener("keydown", (event) => {

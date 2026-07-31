@@ -336,19 +336,11 @@ a {
   background: rgba(242, 154, 56, 0.12);
 }
 
-.header-phone:focus-visible,
-.header-cta:focus-visible,
-.button:focus-visible,
-.dialog-close:focus-visible,
-.brand:focus-visible,
-.site-nav a:focus-visible,
-.menu-toggle:focus-visible,
-.mobile-menu a:focus-visible,
-.mobile-menu button:focus-visible,
-.text-cta:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
+/* Один общий фокус вместо перечисления тринадцати селекторов.
+   При перечислении из списка выпали телефоны в футере и секции
+   расчёта и skip-link: они получали дефолтный контур браузера
+   rgb(16, 16, 16), почти невидимый на тёмном фоне. */
+:focus-visible {
   outline: 2px solid var(--signal-bright);
   outline-offset: 4px;
 }
@@ -3014,20 +3006,6 @@ main {
   }
   to {
     transform: translate3d(-4%, 0, 0) scale(1.12);
-  }
-}
-
-@keyframes blizzard-haze-drift {
-  0% {
-    opacity: 0.28;
-    transform: translate3d(-3%, 1%, 0) scale(1.02) rotate(-1deg);
-  }
-  46% {
-    opacity: 0.43;
-  }
-  100% {
-    opacity: 0.34;
-    transform: translate3d(4%, -2%, 0) scale(1.1) rotate(1deg);
   }
 }
 
