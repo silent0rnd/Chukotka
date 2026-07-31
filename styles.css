@@ -446,12 +446,13 @@ textarea:focus-visible {
     linear-gradient(180deg, rgba(5, 13, 21, 0.45) 0%, transparent 32%, transparent 64%, rgba(4, 11, 18, 0.82) 100%);
 }
 
+/* Без filter: blur(26px) - на мягких градиентах он не читался, но
+   держал два лишних blur-прохода при бюджете в два на вьюпорт. */
 .hero-scene__fog {
   position: absolute;
   inset: auto -10% 0;
   height: 48%;
   opacity: 0.22;
-  filter: blur(26px);
   pointer-events: none;
 }
 
@@ -1046,6 +1047,9 @@ textarea:focus-visible {
   line-height: 1.4;
 }
 
+/* Тот же --signal, что у .button--primary, но у submit не было
+   амберного свечения - на всю ширину панели он читался плоской
+   плитой, а не тем же компонентом, что CTA в hero. */
 .button--submit {
   width: 100%;
   min-height: 54px;
@@ -1053,11 +1057,13 @@ textarea:focus-visible {
   padding: 0 20px;
   color: #111820;
   background: var(--signal);
+  box-shadow: 0 10px 32px rgba(236, 137, 43, 0.18);
   font-size: 14px;
 }
 
 .button--submit:hover {
   background: var(--signal-bright);
+  box-shadow: 0 14px 42px rgba(236, 137, 43, 0.28);
 }
 
 .form-status {
@@ -2568,14 +2574,27 @@ main {
   text-decoration: none;
 }
 
+/* P-05: панель читалась плоской холодной коробкой в самой тёплой
+   секции страницы. Свет теперь падает на верхнюю кромку, а к низу,
+   где кнопка, подмешан тёплый тон зоны прибытия.
+   backdrop-filter убран: он давал третий blur-элемент в вьюпорте
+   поверх .blizzard-haze и .request-section::before. */
 .calculation-form--full {
   position: relative;
   z-index: 4;
   padding: 48px;
   border: 1px solid rgba(213, 228, 236, 0.18);
-  background: rgba(10, 25, 37, 0.8);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(12px);
+  border-top-color: rgba(216, 234, 243, 0.34);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(24, 44, 58, 0.9) 0%,
+      rgba(11, 26, 38, 0.92) 46%,
+      rgba(30, 30, 33, 0.92) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(226, 240, 247, 0.09),
+    0 30px 90px rgba(0, 0, 0, 0.32);
 }
 
 .calculation-form--full .field textarea {
