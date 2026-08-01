@@ -212,6 +212,8 @@ const revealElements = document.querySelectorAll("[data-reveal]");
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const crackPaths = document.querySelectorAll("[data-crack-start]");
 const iceGate = document.querySelector("[data-ice-gate]");
+const heroSection = document.querySelector("#hero");
+const requestSection = document.querySelector("#raschet");
 const iceGateCrackPaths = document.querySelectorAll("[data-ice-crack]");
 let crackAnimationFrame = 0;
 
@@ -301,8 +303,57 @@ function updateIceGate() {
   });
 }
 
+const siteHeader = document.querySelector(".site-header");
+let lastHeaderScroll = window.scrollY;
+
+/* Состояние страницы по скроллу: подложка и показ шапки, линия
+   пройденного пути, плотность пурги. Всё считается в том же
+   rAF-проходе, что и ледовый рубеж - отдельный listener не нужен. */
+function updateScrollState() {
+  if (!siteHeader) return;
+
+  const y = window.scrollY;
+  const heroHeight = heroSection?.offsetHeight || window.innerHeight;
+  const docked = y > heroHeight * 0.6;
+
+  siteHeader.classList.toggle("site-header--docked", docked);
+
+  const goingDown = y > lastHeaderScroll;
+  const pastThreshold = y > heroHeight;
+  siteHeader.classList.toggle(
+    "site-header--hidden",
+    goingDown && pastThreshold && !reducedMotionQuery.matches
+      && !document.body.dataset.modalOpen
+  );
+  lastHeaderScroll = y;
+
+  const travel = Math.max(
+    1,
+    document.documentElement.scrollHeight - window.innerHeight
+  );
+  document.documentElement.style.setProperty(
+    "--scroll-progress",
+    clamp(y / travel).toFixed(4)
+  );
+
+  /* Пурга стихает над формой: одинаковая плотность на всей странице
+     в hero читается атмосферой, а поверх полей - помехой. Заодно
+     совпадает с сюжетом: груз дошёл, шторм ослабевает. */
+  if (requestSection) {
+    const rect = requestSection.getBoundingClientRect();
+    const covered = Math.min(rect.bottom, window.innerHeight)
+      - Math.max(rect.top, 0);
+    const share = clamp(covered / window.innerHeight);
+    document.documentElement.style.setProperty(
+      "--blizzard-damp",
+      (1 - share * 0.55).toFixed(3)
+    );
+  }
+}
+
 function updateIceFracture() {
   crackAnimationFrame = 0;
+  updateScrollState();
   updateIceGate();
   if (!crackPaths.length) return;
 
@@ -313,7 +364,7 @@ function updateIceFracture() {
     return;
   }
 
-  const heroHeight = document.querySelector("#hero")?.offsetHeight || window.innerHeight;
+  const heroHeight = heroSection?.offsetHeight || window.innerHeight;
   const iceGateHeight = iceGate?.offsetHeight || 0;
   const iceGateEnd = iceGate
     ? iceGate.offsetTop + iceGateHeight

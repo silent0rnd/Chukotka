@@ -162,11 +162,50 @@ a {
   transform: translateY(0);
 }
 
+/* P-03: было position: absolute - шапка уезжала навсегда, и на
+   странице в 8900px не оставалось ни навигации, ни «Рассчитать».
+   Теперь fixed: в hero прозрачная, ниже - с подложкой, прячется
+   при движении вниз и возвращается при движении вверх.
+   Без backdrop-filter: полупрозрачной заливки на тёмной палитре
+   достаточно, а бюджет размытий уже занят .blizzard-haze. */
 .site-header {
-  position: absolute;
+  position: fixed;
   z-index: 20;
   inset: 0 0 auto;
   border-bottom: 1px solid rgba(222, 235, 241, 0.12);
+  transition:
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 320ms ease,
+    border-color 320ms ease;
+}
+
+.site-header--docked {
+  background-color: rgba(6, 16, 26, 0.86);
+  border-bottom-color: rgba(222, 235, 241, 0.2);
+}
+
+.site-header--hidden {
+  transform: translateY(-100%);
+}
+
+/* Пройденный путь страницы - продолжение того же маршрутного мотива,
+   что идёт нитью слева. Появляется только вместе с подложкой. */
+.site-header__progress {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  opacity: 0;
+  background: linear-gradient(90deg, var(--signal), rgba(224, 236, 240, 0.72));
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: left;
+  transition: opacity 320ms ease;
+  pointer-events: none;
+}
+
+.site-header--docked .site-header__progress {
+  opacity: 0.85;
 }
 
 .site-header::after {
@@ -398,7 +437,9 @@ a {
   width: 100%;
   height: 100%;
   display: block;
-  opacity: 0.92;
+  /* --blizzard-damp пишется из скролла и приглушает пургу над формой. */
+  opacity: calc(0.92 * var(--blizzard-damp, 1));
+  transition: opacity 220ms linear;
   pointer-events: none;
 }
 
@@ -1100,79 +1141,81 @@ main {
   --ice-gate-overlap: clamp(240px, 28svh, 300px);
   position: relative;
   overflow: clip;
-  /* Световое поле всей страницы. Порядок слоёв сверху вниз повторяет
-     путь груза: ледовый рубеж (самый холодный и тёмный) -> морской
-     участок -> подход к берегу -> огни порта у формы расчёта.
-     Проценты соответствуют секциям: лёд 8-24%, грузы 24-44%,
-     маршрут 44-60%, процесс 60-74%, компания 74-84%, расчёт 84-100%. */
+  /* Световое поле всей страницы: путь груза от ледового рубежа
+     к огням порта. Проценты пересчитаны после переноса «О компании»
+     за форму. Фактическая геометрия: лёд 7-27%, грузы 27-46%,
+     маршрут 46-60%, процесс 60-73%, расчёт 73-87%, компания 87-96%.
+     Тепло теперь достигает максимума на форме, а закрывающий кадр
+     с трассой уходит обратно в холод перед футером. */
   background:
     /* Ледовый рубеж: узкая холодная засветка по горизонту разлома */
     radial-gradient(
-      120% 9% at 50% 15%,
+      120% 10% at 50% 17%,
       rgba(var(--glow-ice), 0.16),
       transparent 70%
     ),
     /* Грузы: свет входит сверху слева, к заголовку */
     radial-gradient(
-      78% 15% at 12% 30%,
+      78% 14% at 12% 32%,
       rgba(var(--glow-cold), 0.15),
       transparent 68%
     ),
     /* Грузы: холодный контровой отблеск справа за фотографией */
     radial-gradient(
-      54% 11% at 92% 39%,
+      54% 11% at 92% 42%,
       rgba(var(--glow-steel), 0.2),
       transparent 70%
     ),
     /* Маршрут: полярное сияние дугой над картой */
     radial-gradient(
-      96% 10% at 46% 49%,
+      96% 9% at 46% 52%,
       rgba(var(--glow-ice), 0.13),
       transparent 66%
     ),
     /* Маршрут: первый намёк на тепло справа - там Певек */
     radial-gradient(
-      44% 8% at 88% 55%,
+      44% 7% at 88% 58%,
       rgba(var(--glow-warm), 0.09),
       transparent 72%
     ),
     /* Как работаем: свет справа, со стороны кадра с портом */
     radial-gradient(
-      70% 13% at 86% 67%,
+      70% 11% at 86% 66%,
       rgba(var(--glow-cold), 0.16),
       transparent 68%
     ),
-    /* О компании: глубокий холодный объём слева */
-    radial-gradient(
-      82% 12% at 8% 79%,
-      rgba(var(--glow-steel), 0.22),
-      transparent 70%
-    ),
     /* Расчёт: тёплая зона прибытия, поднимается снизу слева */
     radial-gradient(
-      88% 16% at 26% 93%,
-      rgba(var(--glow-warm), 0.13),
+      88% 13% at 26% 78%,
+      rgba(var(--glow-warm), 0.14),
       transparent 68%
     ),
     /* Расчёт: тёплый акцент под кнопкой отправки */
     radial-gradient(
-      46% 9% at 76% 96%,
+      46% 8% at 76% 85%,
       rgba(var(--glow-warm), 0.11),
       transparent 70%
     ),
-    /* Температурный дрейф: сталь -> холод -> потепление к финалу */
+    /* О компании: закрывающий кадр, глубокий холодный объём слева */
+    radial-gradient(
+      82% 9% at 8% 92%,
+      rgba(var(--glow-steel), 0.22),
+      transparent 70%
+    ),
+    /* Температурный дрейф: сталь -> холод -> тепло на форме -> уход
+       в темноту к футеру */
     linear-gradient(
       180deg,
       #081721 0%,
-      #060f18 14%,
-      #0b1a26 27%,
-      #0d1f2c 38%,
-      #0a1a26 48%,
-      #101f2b 60%,
-      #0c1a25 72%,
-      #101d28 82%,
-      #16202a 92%,
-      #12191f 100%
+      #060f18 15%,
+      #0b1a26 30%,
+      #0d1f2c 40%,
+      #0a1a26 50%,
+      #101f2b 62%,
+      #131f28 72%,
+      #17202a 80%,
+      #141c24 89%,
+      #0a1017 100%
     );
 }
 
@@ -1720,7 +1763,9 @@ main {
   bottom: 0;
   left: max(-28px, calc((100vw - min(1360px, 100vw - 80px)) / 2 - 72px));
   width: 160px;
-  opacity: 0.68;
+  /* Было 0.68 при обводках в 0.34-0.58 альфы: приём читался как
+     случайная царапина, а не как сквозной мотив маршрута. */
+  opacity: 1;
   pointer-events: none;
 }
 
@@ -1732,11 +1777,12 @@ main {
 
 .route-thread__route {
   fill: none;
-  stroke: rgba(242, 154, 56, 0.34);
-  stroke-dasharray: 4 13;
+  stroke: rgba(242, 154, 56, 0.62);
+  stroke-dasharray: 5 12;
   stroke-linecap: round;
-  stroke-width: 1.2;
+  stroke-width: 1.6;
   vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 6px rgba(242, 154, 56, 0.32));
 }
 
 .route-thread__crack {
@@ -2224,11 +2270,11 @@ main {
   --seam-x: 78%;
 }
 
-/* Расчёт: зона прибытия, шов уже тёплый */
+/* У «Расчёта» светового шва нет намеренно: до него шов уже был
+   у «Как работаем», а два одинаковых перехода подряд запрещены.
+   Вход в форму держит нить маршрута, доходящая до неё слева. */
 .request-section::before {
-  --seam-glow: var(--glow-warm);
-  --seam-alpha: 0.12;
-  --seam-x: 30%;
+  content: none;
 }
 
 .route-section__intro {
@@ -2666,6 +2712,9 @@ main {
   height: 100%;
 }
 
+/* Кадр проявляется из темноты, а не начинается прямой линией.
+   Секция обрезает слой по своей границе, поэтому маска гасит верх
+   с запасом: ramp заканчивается уже внутри секции. */
 .company-scene {
   z-index: 0;
   inset: -90px 0;
@@ -2673,14 +2722,16 @@ main {
   -webkit-mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    #000 15%,
+    transparent 6%,
+    #000 27%,
     #000 84%,
     transparent 100%
   );
   mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    #000 15%,
+    transparent 6%,
+    #000 27%,
     #000 84%,
     transparent 100%
   );
@@ -3727,6 +3778,12 @@ main {
      полностью, оставляя только статичное световое поле секций. */
   .ambient-beam {
     display: none;
+  }
+
+  /* Шапка не прячется: JS уже проверяет matchMedia, это страховка
+     на случай, если класс всё же будет выставлен. */
+  .site-header--hidden {
+    transform: none;
   }
 
   .js [data-reveal],
