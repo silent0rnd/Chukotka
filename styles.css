@@ -3582,16 +3582,18 @@ main {
   }
 
   .cargo-visual {
-    min-height: 470px;
+    position: sticky;
+    z-index: 5;
+    top: 78px;
+    min-height: min(430px, calc(100dvh - 112px));
+  }
+
+  .cargo-manifest {
+    position: relative;
+    z-index: 6;
   }
 
   .cargo-visual figcaption {
-    right: 17px;
-    bottom: 16px;
-    left: 17px;
-  }
-
-  .cargo-visual figcaption span:last-child {
     display: none;
   }
 
@@ -3803,7 +3805,7 @@ main {
   }
 
   .cargo-visual {
-    min-height: 430px;
+    min-height: min(430px, calc(100dvh - 112px));
   }
 
   .map-route-label {

@@ -214,6 +214,38 @@ if (cargoVisual) {
   let activeCargoImage = "";
   const cargoVisualFrame = cargoVisual.closest(".cargo-visual");
   const cargoVisualNext = cargoVisualFrame?.querySelector(".cargo-visual__image--next");
+  const cargoCaption = cargoVisualFrame?.querySelectorAll("figcaption span");
+
+  const preloadCargoImages = () => {
+    cargoItems.forEach((item) => {
+      const source = item.dataset.cargoImage;
+      if (!source) return;
+      new Image().src = source;
+    });
+  };
+
+  const cargoSection = document.querySelector("#gruzi");
+  if (cargoSection && "IntersectionObserver" in window) {
+    const preloadObserver = new IntersectionObserver((entries, observer) => {
+      if (!entries[0]?.isIntersecting) return;
+      observer.disconnect();
+      if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(preloadCargoImages, { timeout: 1200 });
+      } else {
+        window.setTimeout(preloadCargoImages, 0);
+      }
+    }, { rootMargin: "700px 0px" });
+
+    preloadObserver.observe(cargoSection);
+  } else {
+    preloadCargoImages();
+  }
+
+  const updateCargoCaption = (item) => {
+    if (!cargoCaption?.length) return;
+    cargoCaption[0].textContent = item.dataset.cargoCaptionTitle || "";
+    cargoCaption[1].textContent = item.dataset.cargoCaptionMeta || "";
+  };
 
   cargoItems.forEach((item) => {
     const showCargoImage = () => {
@@ -225,6 +257,7 @@ if (cargoVisual) {
 
       nextImage.addEventListener("load", () => {
         if (source !== activeCargoImage) return;
+        updateCargoCaption(item);
 
         if (!cargoVisualFrame || !cargoVisualNext) {
           cargoVisual.src = source;
