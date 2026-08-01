@@ -367,11 +367,9 @@ let lastHeaderScroll = window.scrollY;
 /* Состояние страницы по скроллу: подложка и показ шапки, линия
    пройденного пути, плотность пурги. Всё считается в том же
    rAF-проходе, что и ледовый рубеж - отдельный listener не нужен. */
-function updateScrollState() {
+function updateScrollState({ y, heroHeight, documentHeight, viewportHeight }) {
   if (!siteHeader) return;
 
-  const y = window.scrollY;
-  const heroHeight = heroSection?.offsetHeight || window.innerHeight;
   const docked = y > heroHeight * 0.6;
   const isBeyondHero = y > heroHeight * 1.05;
 
@@ -391,7 +389,7 @@ function updateScrollState() {
 
   const travel = Math.max(
     1,
-    document.documentElement.scrollHeight - window.innerHeight
+    documentHeight - viewportHeight
   );
   document.documentElement.style.setProperty(
     "--scroll-progress",
@@ -401,22 +399,21 @@ function updateScrollState() {
   /* Пурга стихает над формой: одинаковая плотность на всей странице
      в hero читается атмосферой, а поверх полей - помехой. Заодно
      совпадает с сюжетом: груз дошёл, шторм ослабевает. */
-  if (requestSection) {
-    const rect = requestSection.getBoundingClientRect();
-    const covered = Math.min(rect.bottom, window.innerHeight)
-      - Math.max(rect.top, 0);
-    const share = clamp(covered / window.innerHeight);
-    document.documentElement.style.setProperty(
-      "--blizzard-damp",
-      (1 - share * 0.55).toFixed(3)
-    );
-  }
 }
 
 function updateIceFracture() {
   crackAnimationFrame = 0;
-  updateScrollState();
-  updateIceGate();
+  const metrics = readScrollMetrics();
+  updateScrollState(metrics);
+
+  const { iceGateRect, viewportHeight } = metrics;
+  const iceGateIsNear = iceGateRect
+    && iceGateRect.bottom > -viewportHeight
+    && iceGateRect.top < viewportHeight * 2;
+
+  if (!iceGateIsNear) return;
+
+  updateIceGate(metrics);
   if (!crackPaths.length) return;
 
   if (reducedMotionQuery.matches) {
@@ -426,14 +423,10 @@ function updateIceFracture() {
     return;
   }
 
-  const heroHeight = heroSection?.offsetHeight || window.innerHeight;
-  const iceGateHeight = iceGate?.offsetHeight || 0;
-  const iceGateEnd = iceGate
-    ? iceGate.offsetTop + iceGateHeight
-    : heroHeight;
-  const start = Math.max(0, iceGateEnd - window.innerHeight * 0.28);
-  const end = Math.max(start + 1, document.documentElement.scrollHeight - window.innerHeight);
-  const progress = clamp((window.scrollY - start) / (end - start));
+  const iceGateEnd = metrics.y + iceGateRect.top + iceGateRect.height;
+  const start = Math.max(0, iceGateEnd - viewportHeight * 0.28);
+  const end = Math.max(start + 1, metrics.documentHeight - viewportHeight);
+  const progress = clamp((metrics.y - start) / (end - start));
 
   crackPaths.forEach((path) => {
     const pathStart = Number(path.dataset.crackStart || 0);

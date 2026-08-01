@@ -437,8 +437,7 @@ a {
   width: 100%;
   height: 100%;
   display: block;
-  /* --blizzard-damp пишется из скролла и приглушает пургу над формой. */
-  opacity: calc(0.92 * var(--blizzard-damp, 1));
+  opacity: 0.92;
   transition: opacity 220ms linear;
   pointer-events: none;
 }
@@ -2005,10 +2004,10 @@ main {
   inset: 0;
   opacity: 0;
   transform: scale(1.045);
-  will-change: opacity, transform;
 }
 
 .cargo-visual.is-switching .cargo-visual__image--next {
+  will-change: opacity, transform;
   animation: cargo-image-reveal 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
