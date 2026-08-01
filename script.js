@@ -9,7 +9,9 @@ const openMenuButton = document.querySelector("[data-open-menu]");
 const closeMenuButton = document.querySelector("[data-close-menu]");
 const blizzardCanvas = document.querySelector("#blizzard-canvas");
 const cargoVisual = document.querySelector(".cargo-visual__image");
-const cargoItems = document.querySelectorAll(".cargo-manifest article[data-cargo-image]");
+const cargoItems = document.querySelectorAll(
+  ".cargo-manifest article[data-cargo-image-avif][data-cargo-image-webp]"
+);
 let previouslyFocusedElement = null;
 
 const fieldRules = {
@@ -211,17 +213,54 @@ document.querySelectorAll('[data-analytics="email_click"]').forEach((link) => {
 });
 
 if (cargoVisual) {
-  let activeCargoImage = "";
+  let activeCargoItem = null;
+  let isCargoTransitioning = false;
   const cargoVisualFrame = cargoVisual.closest(".cargo-visual");
   const cargoVisualNext = cargoVisualFrame?.querySelector(".cargo-visual__image--next");
   const cargoCaption = cargoVisualFrame?.querySelectorAll("figcaption span");
+  const cargoAssetCache = new Map();
+
+  const loadCargoAsset = (item) => {
+    const cachedAsset = cargoAssetCache.get(item);
+    if (cachedAsset) return cachedAsset;
+
+    const sources = [item.dataset.cargoImageAvif, item.dataset.cargoImageWebp]
+      .filter(Boolean);
+
+    const asset = new Promise((resolve, reject) => {
+      const loadSource = (index) => {
+        const source = sources[index];
+        if (!source) {
+          reject(new Error("Cargo image could not be loaded."));
+          return;
+        }
+
+        const image = new Image();
+        image.decoding = "async";
+        image.addEventListener("load", () => resolve({ image, source }), { once: true });
+        image.addEventListener("error", () => loadSource(index + 1), { once: true });
+        image.src = source;
+      };
+
+      loadSource(0);
+    });
+
+    cargoAssetCache.set(item, asset);
+    asset.catch(() => cargoAssetCache.delete(item));
+    return asset;
+  };
 
   const preloadCargoImages = () => {
-    cargoItems.forEach((item) => {
-      const source = item.dataset.cargoImage;
-      if (!source) return;
-      new Image().src = source;
-    });
+    const preloadNext = (index) => {
+      const item = cargoItems[index];
+      if (!item) return;
+
+      loadCargoAsset(item)
+        .catch(() => undefined)
+        .finally(() => preloadNext(index + 1));
+    };
+
+    preloadNext(0);
   };
 
   const cargoSection = document.querySelector("#gruzi");
@@ -234,7 +273,7 @@ if (cargoVisual) {
       } else {
         window.setTimeout(preloadCargoImages, 0);
       }
-    }, { rootMargin: "700px 0px" });
+    }, { rootMargin: "1600px 0px" });
 
     preloadObserver.observe(cargoSection);
   } else {
@@ -249,28 +288,41 @@ if (cargoVisual) {
 
   cargoItems.forEach((item) => {
     const showCargoImage = () => {
-      const source = item.dataset.cargoImage;
-      if (!source || source === activeCargoImage) return;
+      if (item === activeCargoItem || isCargoTransitioning) return;
 
-      activeCargoImage = source;
-      const nextImage = new Image();
+      isCargoTransitioning = true;
+      item.classList.add("is-loading");
+      item.setAttribute("aria-busy", "true");
+      cargoVisualFrame?.classList.add("is-loading");
 
-      nextImage.addEventListener("load", () => {
-        if (source !== activeCargoImage) return;
+      loadCargoAsset(item).then(({ source }) => {
         updateCargoCaption(item);
 
         if (!cargoVisualFrame || !cargoVisualNext) {
           cargoVisual.src = source;
           cargoVisual.alt = item.dataset.cargoAlt || "";
+          activeCargoItem = item;
+          isCargoTransitioning = false;
+          item.classList.remove("is-loading");
+          item.removeAttribute("aria-busy");
           return;
         }
 
+        let didFinish = false;
+        let fallbackTimer = 0;
         const finishTransition = () => {
-          if (source !== activeCargoImage) return;
+          if (didFinish) return;
+          didFinish = true;
+          window.clearTimeout(fallbackTimer);
           cargoVisual.src = source;
           cargoVisual.alt = item.dataset.cargoAlt || "";
           cargoVisualNext.removeAttribute("src");
           cargoVisualFrame.classList.remove("is-switching");
+          cargoVisualFrame.classList.remove("is-loading");
+          item.classList.remove("is-loading");
+          item.removeAttribute("aria-busy");
+          activeCargoItem = item;
+          isCargoTransitioning = false;
         };
 
         cargoVisualNext.addEventListener("animationend", finishTransition, { once: true });
@@ -278,13 +330,28 @@ if (cargoVisual) {
         cargoVisualFrame.classList.remove("is-switching");
         void cargoVisualNext.offsetWidth;
         cargoVisualFrame.classList.add("is-switching");
-      }, { once: true });
 
-      nextImage.src = source;
+        if (reducedMotionQuery.matches) {
+          window.requestAnimationFrame(finishTransition);
+        } else {
+          fallbackTimer = window.setTimeout(finishTransition, 720);
+        }
+      }).catch(() => {
+        cargoVisualFrame?.classList.remove("is-loading");
+        item.classList.remove("is-loading");
+        item.removeAttribute("aria-busy");
+        isCargoTransitioning = false;
+      });
     };
 
     item.addEventListener("pointerenter", showCargoImage);
     item.addEventListener("pointerdown", showCargoImage);
+    item.addEventListener("click", showCargoImage);
+    item.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      showCargoImage();
+    });
   });
 }
 
@@ -443,6 +510,10 @@ function updateIceFracture() {
   const iceGateIsNear = iceGateRect
     && iceGateRect.bottom > -viewportHeight
     && iceGateRect.top < viewportHeight * 2;
+
+  const iceMotionActive = Boolean(iceGateIsNear && !reducedMotionQuery.matches);
+  iceGate?.classList.toggle("is-motion-active", iceMotionActive);
+  document.documentElement.classList.toggle("is-ice-motion-active", iceMotionActive);
 
   if (!iceGateIsNear) return;
 
