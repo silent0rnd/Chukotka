@@ -8,6 +8,8 @@ const mobileMenu = document.querySelector(".mobile-menu");
 const openMenuButton = document.querySelector("[data-open-menu]");
 const closeMenuButton = document.querySelector("[data-close-menu]");
 const blizzardCanvas = document.querySelector("#blizzard-canvas");
+const cargoVisual = document.querySelector(".cargo-visual__image");
+const cargoItems = document.querySelectorAll(".cargo-manifest article[data-cargo-image]");
 let previouslyFocusedElement = null;
 
 const fieldRules = {
@@ -208,14 +210,59 @@ document.querySelectorAll('[data-analytics="email_click"]').forEach((link) => {
   link.addEventListener("click", () => trackEvent("email_click"));
 });
 
+if (cargoVisual) {
+  let activeCargoImage = "";
+  const cargoVisualFrame = cargoVisual.closest(".cargo-visual");
+  const cargoVisualNext = cargoVisualFrame?.querySelector(".cargo-visual__image--next");
+
+  cargoItems.forEach((item) => {
+    const showCargoImage = () => {
+      const source = item.dataset.cargoImage;
+      if (!source || source === activeCargoImage) return;
+
+      activeCargoImage = source;
+      const nextImage = new Image();
+
+      nextImage.addEventListener("load", () => {
+        if (source !== activeCargoImage) return;
+
+        if (!cargoVisualFrame || !cargoVisualNext) {
+          cargoVisual.src = source;
+          cargoVisual.alt = item.dataset.cargoAlt || "";
+          return;
+        }
+
+        const finishTransition = () => {
+          if (source !== activeCargoImage) return;
+          cargoVisual.src = source;
+          cargoVisual.alt = item.dataset.cargoAlt || "";
+          cargoVisualNext.removeAttribute("src");
+          cargoVisualFrame.classList.remove("is-switching");
+        };
+
+        cargoVisualNext.addEventListener("animationend", finishTransition, { once: true });
+        cargoVisualNext.src = source;
+        cargoVisualFrame.classList.remove("is-switching");
+        void cargoVisualNext.offsetWidth;
+        cargoVisualFrame.classList.add("is-switching");
+      }, { once: true });
+
+      nextImage.src = source;
+    };
+
+    item.addEventListener("pointerenter", showCargoImage);
+    item.addEventListener("pointerdown", showCargoImage);
+  });
+}
+
 const revealElements = document.querySelectorAll("[data-reveal]");
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const crackPaths = document.querySelectorAll("[data-crack-start]");
 const iceGate = document.querySelector("[data-ice-gate]");
 const heroSection = document.querySelector("#hero");
-const requestSection = document.querySelector("#raschet");
 const iceGateCrackPaths = document.querySelectorAll("[data-ice-crack]");
 let crackAnimationFrame = 0;
+let blizzardScene = null;
 
 if ("IntersectionObserver" in window && !reducedMotionQuery.matches) {
   const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -243,7 +290,20 @@ function smoothstep(start, end, value) {
   return progress * progress * (3 - 2 * progress);
 }
 
-function updateIceGate() {
+function readScrollMetrics() {
+  const viewportHeight = window.innerHeight;
+
+  return {
+    y: window.scrollY,
+    viewportHeight,
+    documentHeight: document.documentElement.scrollHeight,
+    heroHeight: heroSection?.offsetHeight || viewportHeight,
+    compactScene: window.innerWidth <= 760,
+    iceGateRect: iceGate?.getBoundingClientRect()
+  };
+}
+
+function updateIceGate({ iceGateRect, viewportHeight, compactScene }) {
   if (!iceGate) return;
 
   if (reducedMotionQuery.matches) {
@@ -261,10 +321,8 @@ function updateIceGate() {
     return;
   }
 
-  const rect = iceGate.getBoundingClientRect();
-  const travel = Math.max(1, iceGate.offsetHeight - window.innerHeight);
-  const progress = clamp(-rect.top / travel);
-  const compactScene = window.innerWidth <= 760;
+  const travel = Math.max(1, iceGateRect.height - viewportHeight);
+  const progress = clamp(-iceGateRect.top / travel);
   /* Сцена сдвинута в первые две трети хода, чтобы последняя треть
      осталась под удержание текста - раньше всё заканчивалось к 0.99
      и дальше зритель смотрел в пустой экран. */
@@ -315,6 +373,10 @@ function updateScrollState() {
   const y = window.scrollY;
   const heroHeight = heroSection?.offsetHeight || window.innerHeight;
   const docked = y > heroHeight * 0.6;
+  const isBeyondHero = y > heroHeight * 1.05;
+
+  document.documentElement.classList.toggle("is-beyond-hero", isBeyondHero);
+  blizzardScene?.setHeroActive(!isBeyondHero);
 
   siteHeader.classList.toggle("site-header--docked", docked);
 
@@ -403,6 +465,7 @@ class BlizzardScene {
     this.animationFrame = 0;
     this.previousTime = 0;
     this.isVisible = !document.hidden;
+    this.heroActive = true;
     this.width = 0;
     this.height = 0;
     this.pixelRatio = 1;
@@ -552,8 +615,26 @@ class BlizzardScene {
     }
   }
 
+  setHeroActive(active) {
+    if (this.heroActive === active) return;
+
+    this.heroActive = active;
+
+    if (active) {
+      this.start();
+      return;
+    }
+
+    window.cancelAnimationFrame(this.animationFrame);
+    this.context.clearRect(0, 0, this.width, this.height);
+    this.canvas.dataset.motion = "paused";
+    document.documentElement.style.setProperty("--beam-strength", "0");
+  }
+
   start() {
-    if (this.motionQuery.matches || !this.isVisible) {
+    if (!this.heroActive || !this.isVisible) return;
+
+    if (this.motionQuery.matches) {
       this.drawStaticFrame();
       return;
     }
@@ -839,5 +920,5 @@ class BlizzardScene {
 }
 
 if (blizzardCanvas instanceof HTMLCanvasElement) {
-  new BlizzardScene(blizzardCanvas);
+  blizzardScene = new BlizzardScene(blizzardCanvas);
 }

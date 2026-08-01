@@ -25,8 +25,8 @@
       type="font/woff2"
       crossorigin
     >
-    <link rel="stylesheet" href="styles.css?v=20260801-9">
-    <script src="script.js?v=20260801-9" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260801-11">
+    <script src="script.js?v=20260801-11" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#hero-content">Перейти к содержанию</a>
@@ -356,17 +356,23 @@
         <div class="cargo-layout">
           <figure class="cargo-visual" data-reveal="figure">
             <picture>
-              <source srcset="assets/generated/cargo-operation-north.avif" type="image/avif">
-              <source srcset="assets/generated/cargo-operation-north.webp" type="image/webp">
               <img
-                src="assets/generated/cargo-operation-north.png"
+                class="cargo-visual__image"
+                src="assets/generated/cargo-operation-north.avif"
                 alt="Погрузка контейнера на судно в северном порту во время снегопада"
                 width="1536"
                 height="1024"
                 loading="lazy"
                 decoding="async"
               >
+              <img
+                class="cargo-visual__image cargo-visual__image--next"
+                alt=""
+                aria-hidden="true"
+                decoding="async"
+              >
             </picture>
+            <span class="cargo-visual__glint" aria-hidden="true"></span>
             <figcaption>
               <span>Северная грузовая операция</span>
               <span>Морская перевозка</span>
@@ -374,32 +380,32 @@
           </figure>
 
           <div class="cargo-manifest" data-reveal="list">
-            <article>
+            <article data-cargo-image="assets/generated/cargo-containers.webp" data-cargo-alt="Контейнеры в северном порту во время снегопада">
               <span>01</span>
               <h3>Контейнерные</h3>
               <p>Стандартные контейнерные партии для морской линии.</p>
             </article>
-            <article>
+            <article data-cargo-image="assets/generated/cargo-consolidated.webp" data-cargo-alt="Сборный груз и погрузчик в северном порту">
               <span>02</span>
               <h3>Сборные</h3>
               <p>Объединение небольших партий в&nbsp;подходящую схему доставки.</p>
             </article>
-            <article>
+            <article data-cargo-image="assets/generated/cargo-general.webp" data-cargo-alt="Генеральные грузы в деревянной упаковке в северном порту">
               <span>03</span>
               <h3>Генеральные</h3>
               <p>Штучные и упакованные грузы с&nbsp;индивидуальными параметрами.</p>
             </article>
-            <article>
+            <article data-cargo-image="assets/generated/cargo-oversized.webp" data-cargo-alt="Негабаритный промышленный груз на погрузке в северном порту">
               <span>04</span>
               <h3>Негабаритные и&nbsp;тяжеловесные</h3>
               <p>Перевозка после проверки размеров, массы и&nbsp;ограничений маршрута.</p>
             </article>
-            <article>
+            <article data-cargo-image="assets/generated/cargo-equipment.webp" data-cargo-alt="Спецтехника на платформе в северном порту">
               <span>05</span>
               <h3>Спецтехника</h3>
               <p>Доставка техники с подбором способа погрузки и&nbsp;крепления.</p>
             </article>
-            <article>
+            <article data-cargo-image="assets/generated/cargo-temperature.webp" data-cargo-alt="Режимный контейнер в северном порту">
               <span>06</span>
               <h3>Режимные</h3>
               <p>Температурный режим учитывается при наличии подходящей схемы.</p>
@@ -801,6 +807,7 @@
       <section class="company-section" id="o-kompanii" aria-labelledby="company-title">
         <div class="company-scene" aria-hidden="true">
           <picture>
+            <source srcset="assets/generated/company-northern-port.webp" type="image/webp">
             <img
               src="assets/generated/company-northern-port.png"
               alt=""
