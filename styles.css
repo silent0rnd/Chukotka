@@ -1,3 +1,29 @@
+/* Заголовочный шрифт. Раньше здесь стояло только имя "Bahnschrift" -
+   системный шрифт, который есть лишь в Windows. На macOS, iOS и
+   Android файла нет, браузер подставлял обычный гротеск, и вся
+   типографика заголовков рассыпалась. Теперь шрифт лежит в проекте,
+   как и Geologica. Вариативный: в макете используются веса 490, 500
+   и 520, статические начертания округлили бы их. */
+@font-face {
+  font-family: "Oswald";
+  src: url("assets/fonts/Oswald-Cyrillic-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: "Oswald";
+  src: url("assets/fonts/Oswald-Latin-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @font-face {
   font-family: "Geologica";
   src: url("assets/fonts/Geologica-Cyrillic-Regular.woff2") format("woff2");
@@ -72,7 +98,7 @@
   --pace-wide: clamp(150px, 17vw, 250px);
 
   --content: min(1360px, calc(100vw - 80px));
-  --font-display: "Bahnschrift", "DIN 2014", "Arial Narrow", sans-serif;
+  --font-display: "Oswald", "Arial Narrow", sans-serif;
   --font-body: "Geologica", "Segoe UI", sans-serif;
   --font-ui: "Geologica", "Segoe UI", sans-serif;
 }
@@ -183,7 +209,6 @@ a {
   color: rgba(237, 244, 247, 0.6);
   font-family: var(--font-ui);
   font-size: 11px;
-  font-stretch: condensed;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -556,9 +581,10 @@ a {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(62px, 7.2vw, 112px);
-  font-stretch: condensed;
   font-weight: 520;
-  letter-spacing: -0.045em;
+  /* -0.018em, а не -0.045em: прежний трекинг подбирался под более
+     широкий Bahnschrift, Oswald узкий по рисунку и слипался. */
+  letter-spacing: -0.018em;
   line-height: 0.89;
   text-wrap: balance;
 }
@@ -863,7 +889,6 @@ a {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(34px, 3.2vw, 50px);
-  font-stretch: condensed;
   font-weight: 490;
   letter-spacing: -0.035em;
   line-height: 0.98;
@@ -1214,9 +1239,8 @@ main {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(50px, 6vw, 92px);
-  font-stretch: condensed;
   font-weight: 500;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.018em;
   line-height: 0.94;
   text-wrap: balance;
 }
@@ -1633,9 +1657,8 @@ main {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(38px, 4.6vw, 68px);
-  font-stretch: condensed;
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.018em;
   line-height: 0.98;
   text-wrap: balance;
   text-shadow: 0 2px 44px rgba(4, 12, 20, 0.72);
@@ -2098,7 +2121,6 @@ main {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(22px, 2.2vw, 34px);
-  font-stretch: condensed;
   font-weight: 500;
   letter-spacing: -0.025em;
   line-height: 1.03;
@@ -2562,7 +2584,6 @@ main {
   margin: -3px 0 10px;
   font-family: var(--font-display);
   font-size: 29px;
-  font-stretch: condensed;
   font-weight: 500;
   letter-spacing: -0.025em;
 }
@@ -2718,7 +2739,6 @@ main {
 .company-facts dt {
   font-family: var(--font-display);
   font-size: 23px;
-  font-stretch: condensed;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -2772,7 +2792,6 @@ main {
   width: fit-content;
   font-family: var(--font-display);
   font-size: 34px;
-  font-stretch: condensed;
   text-decoration: none;
 }
 
@@ -2867,7 +2886,6 @@ main {
   margin-bottom: 9px;
   font-family: var(--font-display);
   font-size: 22px;
-  font-stretch: condensed;
   text-decoration: none;
 }
 
@@ -2887,7 +2905,6 @@ main {
   margin-bottom: 9px;
   font-family: var(--font-display);
   font-size: 22px;
-  font-stretch: condensed;
   font-weight: 500;
 }
 
@@ -2971,7 +2988,6 @@ main {
   padding: 16px 0;
   font-family: var(--font-display);
   font-size: clamp(36px, 11vw, 54px);
-  font-stretch: condensed;
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1;
