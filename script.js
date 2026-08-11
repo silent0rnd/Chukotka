@@ -462,6 +462,7 @@ function updateIceGate({ iceGateRect, viewportHeight, compactScene }) {
 }
 
 const siteHeader = document.querySelector(".site-header");
+const headerProgress = document.querySelector(".site-header__progress");
 let lastHeaderScroll = window.scrollY;
 
 /* Состояние страницы по скроллу: подложка и показ шапки, линия
@@ -491,7 +492,9 @@ function updateScrollState({ y, heroHeight, documentHeight, viewportHeight }) {
     1,
     documentHeight - viewportHeight
   );
-  document.documentElement.style.setProperty(
+  /* Переменную читает только полоска прогресса в шапке. На :root
+     она гасила стиль всего документа на каждом кадре скролла. */
+  headerProgress?.style.setProperty(
     "--scroll-progress",
     clamp(y / travel).toFixed(4)
   );
@@ -552,6 +555,39 @@ window.addEventListener("resize", requestIceFractureUpdate, { passive: true });
 reducedMotionQuery.addEventListener("change", requestIceFractureUpdate);
 updateIceFracture();
 
+/* Снег рисуется не по снежинке за раз, а дорожками: частицы с
+   близкой прозрачностью и толщиной копятся в один Path2D и уходят
+   одним stroke(). ~760 отдельных вызовов canvas на кадр (плюс
+   столько же строк rgba в мусор) превращаются в ~50 - именно они
+   и роняли слабые машины, а не блюр и не CSS-слои. */
+const ALPHA_LANES = 12;
+const WIDTH_LANES = 4;
+const LANE_ALPHA_MAX = 0.8;
+const LANE_WIDTH_MIN = 0.2;
+const LANE_WIDTH_MAX = 1.25;
+const LANE_STYLES = [];
+
+for (let alphaLane = 0; alphaLane < ALPHA_LANES; alphaLane += 1) {
+  for (let widthLane = 0; widthLane < WIDTH_LANES; widthLane += 1) {
+    LANE_STYLES[alphaLane * WIDTH_LANES + widthLane] = {
+      stroke: `rgba(201, 216, 225, ${(
+        (alphaLane + 0.5) / ALPHA_LANES * LANE_ALPHA_MAX
+      ).toFixed(3)})`,
+      width: LANE_WIDTH_MIN + (
+        (widthLane + 0.5) / WIDTH_LANES * (LANE_WIDTH_MAX - LANE_WIDTH_MIN)
+      )
+    };
+  }
+}
+
+/* Ступени качества. Только вниз: если машина не тянет кадр, попытка
+   вернуть нагрузку обратно снова его уронит - получим качели. */
+const QUALITY_TIERS = [
+  { particleScale: 1, pixelRatio: 1.5 },
+  { particleScale: 0.6, pixelRatio: 1.25 },
+  { particleScale: 0.35, pixelRatio: 1 }
+];
+
 class BlizzardScene {
   constructor(canvas) {
     this.canvas = canvas;
@@ -559,6 +595,16 @@ class BlizzardScene {
     this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     this.pointerQuery = window.matchMedia("(pointer: fine)");
     this.particles = [];
+    this.lanes = new Array(ALPHA_LANES * WIDTH_LANES).fill(null);
+    this.litParticles = [];
+    this.litCount = 0;
+    this.beam = { active: false, cosine: 1, sine: 0, length: 0 };
+    this.beamLayer = document.querySelector(".ambient-beam")
+      || document.documentElement;
+    this.quality = 0;
+    this.frameCost = 0;
+    this.frameSamples = 0;
+    this.resizeTimer = 0;
     this.animationFrame = 0;
     this.previousTime = 0;
     this.isVisible = !document.hidden;
@@ -582,6 +628,7 @@ class BlizzardScene {
     };
 
     this.resize = this.resize.bind(this);
+    this.handleResize = this.handleResize.bind(this);
     this.animate = this.animate.bind(this);
     this.handlePointerMove = this.handlePointerMove.bind(this);
     this.handlePointerLeave = this.handlePointerLeave.bind(this);
@@ -594,7 +641,7 @@ class BlizzardScene {
   }
 
   bindEvents() {
-    window.addEventListener("resize", this.resize, { passive: true });
+    window.addEventListener("resize", this.handleResize, { passive: true });
     window.addEventListener("pointermove", this.handlePointerMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", this.handlePointerLeave);
     document.addEventListener("visibilitychange", this.handleVisibility);
@@ -602,10 +649,20 @@ class BlizzardScene {
     this.pointerQuery.addEventListener("change", this.handleMotionPreference);
   }
 
+  /* resize пересобирает буфер канваса, читает layout и может создать
+     сотни частиц. На мобильных он летит пачкой при каждом показе
+     адресной строки - поэтому откладываем. */
+  handleResize() {
+    window.clearTimeout(this.resizeTimer);
+    this.resizeTimer = window.setTimeout(this.resize, 140);
+  }
+
   resize() {
+    const tier = QUALITY_TIERS[this.quality];
+
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.pixelRatio = Math.min(window.devicePixelRatio || 1, 1.75);
+    this.pixelRatio = Math.min(window.devicePixelRatio || 1, tier.pixelRatio);
     this.heroHeight = document.querySelector("#hero")?.offsetHeight
       || this.height;
 
@@ -628,6 +685,7 @@ class BlizzardScene {
     const targetCount = Math.round(
       Math.min(760, Math.max(200, (this.width * this.height) / 1700))
       * coarseMultiplier
+      * tier.particleScale
     );
 
     if (this.particles.length > targetCount) {
@@ -635,7 +693,7 @@ class BlizzardScene {
     }
 
     while (this.particles.length < targetCount) {
-      this.particles.push(this.createParticle(true));
+      this.particles.push(this.initParticle({}, true));
     }
 
     if (this.motionQuery.matches) {
@@ -643,33 +701,53 @@ class BlizzardScene {
     }
   }
 
-  createParticle(initial = false) {
+  /* Заполняем существующий объект вместо создания нового: частицы
+     переиспользуются каждый кадр, и throwaway-объект на каждую
+     улетевшую снежинку кормил сборщик мусора без нужды. */
+  initParticle(particle, initial = false) {
     const depth = Math.random() < 0.78
       ? 0.03 + Math.pow(Math.random(), 1.8) * 0.45
       : 0.48 + Math.random() * 0.52;
     const speedVariation = 0.64 + Math.random() * 0.82;
     const fineSnow = depth < 0.42 || Math.random() < 0.62;
 
-    return {
-      x: initial ? Math.random() * this.width : this.width + 30 + Math.random() * 220,
-      y: initial ? Math.random() * this.height : -50 + Math.random() * (this.height + 60),
-      depth,
-      velocityX: -(2.1 + depth * 10.6) * speedVariation,
-      velocityY: (0.55 + depth * 3.4) * speedVariation,
-      length: fineSnow
-        ? 0.6 + Math.random() * 2.8 + depth * 3.8
-        : 3.2 + depth * 14 + Math.random() * 8,
-      width: 0.2 + depth * 1.05,
-      alpha: 0.11 + depth * 0.54 + Math.random() * 0.12,
-      phase: Math.random() * Math.PI * 2,
-      gustPhase: Math.random() * Math.PI * 2,
-      flutter: 0.28 + Math.random() * 1.35,
-      drift: 0.45 + Math.random() * 1.2
-    };
+    particle.x = initial
+      ? Math.random() * this.width
+      : this.width + 30 + Math.random() * 220;
+    particle.y = initial
+      ? Math.random() * this.height
+      : -50 + Math.random() * (this.height + 60);
+    particle.depth = depth;
+    particle.velocityX = -(2.1 + depth * 10.6) * speedVariation;
+    particle.velocityY = (0.55 + depth * 3.4) * speedVariation;
+    particle.length = fineSnow
+      ? 0.6 + Math.random() * 2.8 + depth * 3.8
+      : 3.2 + depth * 14 + Math.random() * 8;
+    particle.width = 0.2 + depth * 1.05;
+    particle.alpha = 0.11 + depth * 0.54 + Math.random() * 0.12;
+    particle.phase = Math.random() * Math.PI * 2;
+    particle.gustPhase = Math.random() * Math.PI * 2;
+    particle.flutter = 0.28 + Math.random() * 1.35;
+    particle.drift = 0.45 + Math.random() * 1.2;
+    particle.lane = (
+      Math.min(
+        ALPHA_LANES - 1,
+        (particle.alpha / LANE_ALPHA_MAX * ALPHA_LANES) | 0
+      ) * WIDTH_LANES
+      + Math.min(
+        WIDTH_LANES - 1,
+        Math.max(0, (
+          (particle.width - LANE_WIDTH_MIN)
+          / (LANE_WIDTH_MAX - LANE_WIDTH_MIN) * WIDTH_LANES
+        ) | 0)
+      )
+    );
+
+    return particle;
   }
 
   resetParticle(particle) {
-    Object.assign(particle, this.createParticle(false));
+    this.initParticle(particle, false);
     if (Math.random() > 0.72) {
       particle.y = -30 - Math.random() * 100;
       particle.x = Math.random() * (this.width + 160);
@@ -725,7 +803,8 @@ class BlizzardScene {
     window.cancelAnimationFrame(this.animationFrame);
     this.context.clearRect(0, 0, this.width, this.height);
     this.canvas.dataset.motion = "paused";
-    document.documentElement.style.setProperty("--beam-strength", "0");
+    this.beamLayer.style.setProperty("--beam-strength", "0");
+    this.publishedBeam = null;
   }
 
   start() {
@@ -807,6 +886,14 @@ class BlizzardScene {
     const strength = this.pointerQuery.matches && !this.motionQuery.matches
       ? this.pointer.strength * handoff
       : 0;
+
+    /* Весь первый экран handoff равен нулю: ореол полностью
+       прозрачен, и его координаты ни на что не влияют. Раньше мы
+       всё равно писали их каждый кадр - а запись переменной гасит
+       стиль всего поддерева и тянет за собой пересчёт. Пока луча
+       не видно, молчим. */
+    if (strength < 0.001 && this.publishedBeam?.strength < 0.001) return;
+
     const x = Math.round(this.pointer.x);
     const y = Math.round(this.pointer.y);
 
@@ -820,10 +907,13 @@ class BlizzardScene {
     }
 
     this.publishedBeam = { x, y, strength };
-    const root = document.documentElement.style;
-    root.setProperty("--beam-x", `${x}px`);
-    root.setProperty("--beam-y", `${y}px`);
-    root.setProperty("--beam-strength", strength.toFixed(3));
+    /* Переменные читает только .ambient-beam, поэтому пишем их в
+       сам слой. На :root они инвалидировали стиль всего документа
+       ради одного элемента. */
+    const target = this.beamLayer.style;
+    target.setProperty("--beam-x", `${x}px`);
+    target.setProperty("--beam-y", `${y}px`);
+    target.setProperty("--beam-strength", strength.toFixed(3));
   }
 
   drawBeacon() {
@@ -900,16 +990,17 @@ class BlizzardScene {
     context.restore();
   }
 
-  getBeamLight(particle) {
-    if (this.pointer.strength < 0.01 || !this.pointerQuery.matches) return 0;
+  /* Угол и длина луча за кадр не меняются, а считались заново для
+     каждой из 760 снежинок - две тригонометрии и hypot на частицу.
+     Считаем один раз на кадр. */
+  prepareBeam() {
+    const beam = this.beam;
+    beam.active = this.pointer.strength >= 0.01 && this.pointerQuery.matches;
+    if (!beam.active) return;
 
-    const offsetX = particle.x - this.pointer.originX;
-    const offsetY = particle.y - this.pointer.originY;
-    const cosine = Math.cos(this.pointer.angle);
-    const sine = Math.sin(this.pointer.angle);
-    const forward = offsetX * cosine + offsetY * sine;
-    const sideways = Math.abs(-offsetX * sine + offsetY * cosine);
-    const beamLength = Math.min(
+    beam.cosine = Math.cos(this.pointer.angle);
+    beam.sine = Math.sin(this.pointer.angle);
+    beam.length = Math.min(
       this.width * 1.12,
       Math.max(
         540,
@@ -919,6 +1010,19 @@ class BlizzardScene {
         ) * 1.38
       )
     );
+  }
+
+  getBeamLight(particle) {
+    const beam = this.beam;
+    if (!beam.active) return 0;
+
+    const offsetX = particle.x - this.pointer.originX;
+    const offsetY = particle.y - this.pointer.originY;
+    const cosine = beam.cosine;
+    const sine = beam.sine;
+    const forward = offsetX * cosine + offsetY * sine;
+    const sideways = Math.abs(-offsetX * sine + offsetY * cosine);
+    const beamLength = beam.length;
 
     if (forward < -16 || forward > beamLength) return 0;
 
@@ -938,6 +1042,12 @@ class BlizzardScene {
       + Math.sin(time * 0.00067 + 1.8) * 0.2
       + Math.sin(time * 0.00117 + 4.1) * 0.1
     );
+
+    const lanes = this.lanes;
+    for (let index = 0; index < lanes.length; index += 1) {
+      lanes[index] = null;
+    }
+    this.litCount = 0;
 
     context.save();
     context.globalCompositeOperation = "screen";
@@ -968,27 +1078,63 @@ class BlizzardScene {
         }
       }
 
-      const beamLight = this.getBeamLight(particle);
-      const alpha = Math.min(
-        0.96,
-        particle.alpha * (0.56 + gust * 0.36) + beamLight * 0.7
-      );
-      const warm = Math.round(beamLight * 26);
-      const red = 201 + warm;
-      const green = 216 + Math.round(beamLight * 14);
-      const blue = 225 - Math.round(beamLight * 10);
       const streakScale = 0.72 + particle.depth * 0.94;
+      const tailX = particle.x - particle.velocityX * streakScale;
+      const tailY = particle.y - particle.velocityY * streakScale;
+      const beamLight = this.getBeamLight(particle);
 
-      context.beginPath();
-      context.moveTo(particle.x, particle.y);
-      context.lineTo(
-        particle.x - particle.velocityX * streakScale,
-        particle.y - particle.velocityY * streakScale
-      );
-      context.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-      context.lineWidth = particle.width + beamLight * 0.55;
-      context.stroke();
+      /* Снежинки в конусе прожектора теплеют и толстеют - их
+         единицы, красим индивидуально. Остальные идут в дорожки. */
+      if (beamLight > 0.02) {
+        this.litParticles[this.litCount] = this.litParticles[this.litCount] || {};
+        const lit = this.litParticles[this.litCount];
+        lit.x = particle.x;
+        lit.y = particle.y;
+        lit.tailX = tailX;
+        lit.tailY = tailY;
+        lit.alpha = Math.min(
+          0.96,
+          particle.alpha * (0.56 + gust * 0.36) + beamLight * 0.7
+        );
+        lit.light = beamLight;
+        lit.width = particle.width + beamLight * 0.55;
+        this.litCount += 1;
+        return;
+      }
+
+      let path = lanes[particle.lane];
+      if (!path) {
+        path = new Path2D();
+        lanes[particle.lane] = path;
+      }
+      path.moveTo(particle.x, particle.y);
+      path.lineTo(tailX, tailY);
     });
+
+    /* Порыв ветра общий для всех - он уходит в globalAlpha, а не в
+       альфу каждой снежинки. Дорожки от этого не «прыгают». */
+    context.globalAlpha = Math.min(1, 0.56 + gust * 0.36);
+    for (let index = 0; index < lanes.length; index += 1) {
+      const path = lanes[index];
+      if (!path) continue;
+      const style = LANE_STYLES[index];
+      context.strokeStyle = style.stroke;
+      context.lineWidth = style.width;
+      context.stroke(path);
+    }
+
+    context.globalAlpha = 1;
+    for (let index = 0; index < this.litCount; index += 1) {
+      const lit = this.litParticles[index];
+      context.beginPath();
+      context.moveTo(lit.x, lit.y);
+      context.lineTo(lit.tailX, lit.tailY);
+      context.strokeStyle = `rgba(${201 + Math.round(lit.light * 26)}, ${
+        216 + Math.round(lit.light * 14)
+      }, ${225 - Math.round(lit.light * 10)}, ${lit.alpha})`;
+      context.lineWidth = lit.width;
+      context.stroke();
+    }
 
     context.restore();
   }
@@ -996,18 +1142,47 @@ class BlizzardScene {
   drawStaticFrame() {
     this.context.clearRect(0, 0, this.width, this.height);
     this.publishBeam();
+    this.prepareBeam();
     this.drawParticles(3200, 0, false);
     this.canvas.dataset.motion = "reduced";
   }
 
+  /* Ни один список «слабых устройств» не угадает нужное железо, а
+     ошибка стоит либо тормозов, либо зря урезанной картинки. Поэтому
+     смотрим на реальное время кадра и снимаем нагрузку ступенями. */
+  trackFrameCost(elapsed) {
+    /* Выбросы - это вкладка вернулась из фона или пауза сборщика
+       мусора, а не медленная машина. */
+    if (elapsed > 120) return;
+
+    this.frameSamples += 1;
+    this.frameCost += (elapsed - this.frameCost) * 0.05;
+
+    /* Первые ~1.5 с уходят на декод картинок и раскладку - судить
+       по ним о железе нельзя. */
+    if (this.frameSamples < 90) return;
+
+    if (this.frameCost > 23 && this.quality < QUALITY_TIERS.length - 1) {
+      this.quality += 1;
+      this.frameCost = 16.67;
+      this.frameSamples = 0;
+      document.documentElement.dataset.blizzard = "low";
+      this.resize();
+    }
+  }
+
   animate(time) {
-    const elapsed = this.previousTime ? time - this.previousTime : 16.67;
+    const isFirstFrame = !this.previousTime;
+    const elapsed = isFirstFrame ? 16.67 : time - this.previousTime;
     const delta = Math.min(2.2, elapsed / 16.67);
     this.previousTime = time;
+
+    if (!isFirstFrame) this.trackFrameCost(elapsed);
 
     this.context.clearRect(0, 0, this.width, this.height);
     this.updatePointer(delta);
     this.publishBeam();
+    this.prepareBeam();
     this.drawBeacon();
     this.drawParticles(time, delta, true);
     this.canvas.dataset.motion = "active";

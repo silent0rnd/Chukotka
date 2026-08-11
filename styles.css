@@ -459,6 +459,13 @@ a {
   animation: blizzard-haze-intense 11s ease-in-out infinite alternate;
 }
 
+/* Машина не тянет кадр (см. trackFrameCost): снимаем blur-проход
+   на слой в 136% вьюпорта - градиенты и без него мягкие. */
+[data-blizzard="low"] .blizzard-haze {
+  filter: none;
+  animation: none;
+}
+
 .is-beyond-hero .blizzard-canvas {
   opacity: 0;
 }
