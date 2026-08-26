@@ -150,7 +150,7 @@ a {
   z-index: 100;
   top: 12px;
   left: 12px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: 2px;
   color: var(--ink);
   background: var(--ice);
@@ -231,6 +231,8 @@ a {
 .brand {
   width: clamp(166px, 14vw, 222px);
   display: block;
+  /* padding, а не высота логотипа: тап-зона 44px без роста шапки */
+  padding: 8px 0;
   line-height: 0;
 }
 
@@ -831,7 +833,8 @@ a {
   display: flex;
   align-items: center;
   gap: 16px;
-  color: rgba(237, 244, 247, 0.34);
+  color: rgba(240, 247, 250, 0.94);
+  text-shadow: 0 0 10px rgba(4, 10, 16, 0.9), 0 1px 2px rgba(4, 10, 16, 0.85);
   font-family: var(--font-ui);
   font-weight: 600;
   font-size: 9px;
@@ -1031,7 +1034,9 @@ a {
 .field select,
 .field textarea {
   width: 100%;
-  border: 1px solid rgba(214, 229, 235, 0.19);
+  /* 0.42 alpha, а не 0.3x: на панели формы rgb(25, 43, 55) более
+     низкая альфа не даёт нужных 3:1 по WCAG 1.4.11. */
+  border: 1px solid rgba(214, 229, 235, 0.42);
   border-radius: 2px;
   color: var(--ice);
   background: rgba(237, 244, 247, 0.035);
@@ -1077,7 +1082,7 @@ a {
 .field input:hover,
 .field select:hover,
 .field textarea:hover {
-  border-color: rgba(214, 229, 235, 0.36);
+  border-color: rgba(214, 229, 235, 0.58);
 }
 
 .field input[aria-invalid="true"],
@@ -1105,11 +1110,15 @@ a {
 .consent-field input {
   width: 17px;
   height: 17px;
-  margin: 2px 0 0;
+  margin: 0;
+  align-self: center;
   accent-color: var(--signal);
 }
 
 .consent-field label {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
   color: rgba(237, 244, 247, 0.66);
   font-size: 12px;
   line-height: 1.45;
@@ -2139,6 +2148,17 @@ main {
   cursor: progress;
 }
 
+/* P-03: постоянная метка выбранного груза. Ховер живёт в
+   @media (hover: hover) и на тач-экране не работает вообще. */
+.cargo-manifest article.is-active > span {
+  color: var(--signal);
+}
+
+.cargo-manifest article.is-active::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
 .cargo-manifest article.is-loading > * {
   opacity: 0.58;
 }
@@ -3145,8 +3165,8 @@ main {
 
 .mobile-menu__top button {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 50%;
@@ -3155,8 +3175,8 @@ main {
 
 .mobile-menu__top button span {
   position: absolute;
-  top: 20px;
-  left: 12px;
+  top: 21px;
+  left: 13px;
   width: 17px;
   height: 1px;
   background: currentColor;
@@ -3184,6 +3204,24 @@ main {
   letter-spacing: -0.03em;
   line-height: 1;
   text-decoration: none;
+}
+
+.mobile-menu__phone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 14px 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.mobile-menu__phone svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
 }
 
 .mobile-menu .button {
@@ -3629,20 +3667,13 @@ main {
     margin-top: 48px;
   }
 
+  /* P-03: на телефоне sticky-фото уезжало под список, и текст ехал
+     прямо по кадру. Фото - обычный блок над списком, подпись кадра
+     возвращена: без неё непонятно, какой груз показан. */
   .cargo-visual {
-    position: sticky;
-    z-index: 5;
-    top: 78px;
-    min-height: min(430px, calc(100dvh - 112px));
-  }
-
-  .cargo-manifest {
     position: relative;
-    z-index: 6;
-  }
-
-  .cargo-visual figcaption {
-    display: none;
+    top: auto;
+    min-height: min(430px, calc(100dvh - 112px));
   }
 
   .cargo-manifest article {
@@ -4025,7 +4056,6 @@ main {
 .hero__eyebrow,
 .route-index,
 .route-point__label,
-.hero__edge,
 .dialog-intro__note,
 .field label,
 .field input::placeholder,

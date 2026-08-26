@@ -308,6 +308,11 @@ if (cargoVisual) {
         }
 
         updateCargoCaption(item);
+        cargoItems.forEach((other) => {
+          const isActive = other === item;
+          other.classList.toggle("is-active", isActive);
+          other.setAttribute("aria-pressed", String(isActive));
+        });
 
         if (!cargoVisualFrame || !cargoVisualNext) {
           cargoVisual.src = source;
@@ -370,7 +375,20 @@ const iceGate = document.querySelector("[data-ice-gate]");
 const heroSection = document.querySelector("#hero");
 const iceGateCrackPaths = document.querySelectorAll("[data-ice-crack]");
 let crackAnimationFrame = 0;
+let iceMotionIdleTimer = 0;
 let blizzardScene = null;
+
+/* will-change держит отдельный слой в памяти видеокарты, поэтому
+   подсказка живёт только пока идёт скролл. В покое класс снимается
+   и 12 слоёв (пурга, луч, 10 осколков) освобождаются. */
+function setIceMotionActive(active) {
+  window.clearTimeout(iceMotionIdleTimer);
+  iceGate?.classList.toggle("is-motion-active", active);
+  document.documentElement.classList.toggle("is-ice-motion-active", active);
+  if (active) {
+    iceMotionIdleTimer = window.setTimeout(() => setIceMotionActive(false), 200);
+  }
+}
 
 if ("IntersectionObserver" in window && !reducedMotionQuery.matches) {
   const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -523,8 +541,7 @@ function updateIceFracture() {
     && iceGateRect.top < viewportHeight * 2;
 
   const iceMotionActive = Boolean(iceGateIsNear && !reducedMotionQuery.matches);
-  iceGate?.classList.toggle("is-motion-active", iceMotionActive);
-  document.documentElement.classList.toggle("is-ice-motion-active", iceMotionActive);
+  setIceMotionActive(iceMotionActive);
 
   if (!iceGateIsNear) return;
 

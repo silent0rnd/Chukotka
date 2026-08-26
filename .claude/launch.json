@@ -4,7 +4,8 @@
     {
       "name": "chukotka",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["-y", "serve", "-l", "5187", "."],
+      "runtimeArgs": ["-y", "serve", "."],
+      "autoPort": true,
       "port": 5187
     }
   ]
