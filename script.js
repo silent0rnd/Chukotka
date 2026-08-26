@@ -214,7 +214,7 @@ document.querySelectorAll('[data-analytics="email_click"]').forEach((link) => {
 
 if (cargoVisual) {
   let activeCargoItem = null;
-  let isCargoTransitioning = false;
+  let cargoRequestId = 0;
   const cargoVisualFrame = cargoVisual.closest(".cargo-visual");
   const cargoVisualNext = cargoVisualFrame?.querySelector(".cargo-visual__image--next");
   const cargoCaption = cargoVisualFrame?.querySelectorAll("figcaption span");
@@ -288,23 +288,32 @@ if (cargoVisual) {
 
   cargoItems.forEach((item) => {
     const showCargoImage = () => {
-      if (item === activeCargoItem || isCargoTransitioning) return;
+      if (item === activeCargoItem) return;
 
-      isCargoTransitioning = true;
+      activeCargoItem = item;
+      const requestId = ++cargoRequestId;
+      const clearItemState = () => {
+        item.classList.remove("is-loading");
+        item.removeAttribute("aria-busy");
+      };
+
       item.classList.add("is-loading");
       item.setAttribute("aria-busy", "true");
       cargoVisualFrame?.classList.add("is-loading");
 
       loadCargoAsset(item).then(({ source }) => {
+        if (requestId !== cargoRequestId) {
+          clearItemState();
+          return;
+        }
+
         updateCargoCaption(item);
 
         if (!cargoVisualFrame || !cargoVisualNext) {
           cargoVisual.src = source;
           cargoVisual.alt = item.dataset.cargoAlt || "";
-          activeCargoItem = item;
-          isCargoTransitioning = false;
-          item.classList.remove("is-loading");
-          item.removeAttribute("aria-busy");
+          cargoVisualFrame?.classList.remove("is-loading");
+          clearItemState();
           return;
         }
 
@@ -314,15 +323,14 @@ if (cargoVisual) {
           if (didFinish) return;
           didFinish = true;
           window.clearTimeout(fallbackTimer);
+          clearItemState();
+          if (requestId !== cargoRequestId) return;
+
           cargoVisual.src = source;
           cargoVisual.alt = item.dataset.cargoAlt || "";
           cargoVisualNext.removeAttribute("src");
           cargoVisualFrame.classList.remove("is-switching");
           cargoVisualFrame.classList.remove("is-loading");
-          item.classList.remove("is-loading");
-          item.removeAttribute("aria-busy");
-          activeCargoItem = item;
-          isCargoTransitioning = false;
         };
 
         cargoVisualNext.addEventListener("animationend", finishTransition, { once: true });
@@ -337,10 +345,10 @@ if (cargoVisual) {
           fallbackTimer = window.setTimeout(finishTransition, 720);
         }
       }).catch(() => {
+        clearItemState();
+        if (requestId !== cargoRequestId) return;
         cargoVisualFrame?.classList.remove("is-loading");
-        item.classList.remove("is-loading");
-        item.removeAttribute("aria-busy");
-        isCargoTransitioning = false;
+        activeCargoItem = null;
       });
     };
 
