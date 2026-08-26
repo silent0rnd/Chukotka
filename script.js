@@ -449,25 +449,25 @@ function updateIceGate({ iceGateRect, viewportHeight, compactScene }) {
 
   const travel = Math.max(1, iceGateRect.height - viewportHeight);
   const progress = clamp(-iceGateRect.top / travel);
-  /* Сцена сдвинута в первые две трети хода, чтобы последняя треть
-     осталась под удержание текста - раньше всё заканчивалось к 0.99
-     и дальше зритель смотрел в пустой экран. */
-  const fracture = smoothstep(0.04, 0.4, progress);
+  /* Фазы растянуты почти на весь ход: последний осколок уходит к 0.92,
+     дальше сцена сразу отлипает. Раньше всё заканчивалось к 0.8, и
+     оставшийся ход зритель смотрел в неподвижный кадр. */
+  const fracture = smoothstep(0.05, 0.45, progress);
   const release = compactScene
-    ? smoothstep(0.36, 0.58, progress)
-    : smoothstep(0.32, 0.54, progress);
+    ? smoothstep(0.42, 0.66, progress)
+    : smoothstep(0.38, 0.62, progress);
   const scatter = compactScene
-    ? smoothstep(0.52, 0.84, progress)
-    : smoothstep(0.48, 0.8, progress);
-  const opening = smoothstep(0.4, 0.72, progress);
+    ? smoothstep(0.6, 0.95, progress)
+    : smoothstep(0.56, 0.92, progress);
+  const opening = smoothstep(0.46, 0.82, progress);
   const fragmentOpacity = 1 - (
     compactScene
-      ? smoothstep(0.62, 0.82, progress)
-      : smoothstep(0.58, 0.78, progress)
+      ? smoothstep(0.72, 0.93, progress)
+      : smoothstep(0.68, 0.9, progress)
   );
-  const fractureFade = 1 - smoothstep(0.44, 0.66, progress);
+  const fractureFade = 1 - smoothstep(0.52, 0.76, progress);
   /* Текст входит из-под расходящейся плиты и держится до конца. */
-  const reveal = smoothstep(0.54, 0.76, progress);
+  const reveal = smoothstep(0.6, 0.84, progress);
   const impact = fracture * (1 - opening * 0.9);
 
   iceGate.style.setProperty("--ice-progress", progress.toFixed(4));
