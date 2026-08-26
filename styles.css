@@ -2810,7 +2810,9 @@ main {
   position: relative;
   z-index: 1;
   min-height: 650px;
-  margin: clamp(-200px, -11vw, -90px) calc((var(--content) - 100vw) / 2) 0 0;
+  /* Подъём кадра не должен превышать отступ .process-layout (60-100px),
+     иначе фото заезжает под заголовок секции. */
+  margin: clamp(-90px, -5vw, -40px) calc((var(--content) - 100vw) / 2) 0 0;
   overflow: hidden;
   border: 1px solid var(--line);
 }
